@@ -69,5 +69,66 @@ rename table comentarios_post to publicacoes;
 
 
 
+create table categorias(
+    categoria_id int primary key auto_increment,
+    nome_categoria varchar(100) not null unique,
+    descricao text
+);
+
+create table tags(
+    tag_id int primary key auto_increment,
+    nome_tag varchar(50) not null unique
+);
+
+create table publicacao_tag(
+    publicacao_id int,
+    tag_id int,
+    primary key (publicacao_id, tag_id),
+    foreign key (publicacao_id) references publicacoes(post_id),
+    foreign key (tag_id) references tags(tag_id)
+);
+
+alter table publicacoes
+add column categoria_id int;
+
+alter table publicacoes
+add constraint fk_categoria_id
+foreign key (categoria_id)
+references categorias(categoria_id);
+
+create table curtidas(
+    curtida_id int primary key auto_increment,
+    usuario_id int,
+    post_id int,
+    data_curtida datetime default current_timestamp,
+    unique (usuario_id, post_id),
+    foreign key (usuario_id) references usuarios(usuario_id),
+    foreign key (post_id) references publicacoes(post_id)
+);
+
+alter table usuarios
+add column is_admin boolean default false;
+
+alter table categorias
+modify column descricao text null;
+
+alter table curtidas
+add constraint chk_data_curtida
+check (data_curtida <= current_timestamp);
+
+alter table tags
+rename column nome_tag to nome_da_tag;
+
+create table tabela_teste(
+    categoria_id int primary key auto_increment,
+    nome_categoria varchar(100) not null unique,
+    descricao text null
+);
+
+drop table tabela_teste;
+
+
+
+
 
 
