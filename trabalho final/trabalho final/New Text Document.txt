@@ -1,0 +1,1562 @@
+DROP DATABASE IF EXISTS controle_estoque;
+
+CREATE DATABASE controle_estoque;
+
+USE controle_estoque;
+
+CREATE TABLE cliente (
+cliente_id INT PRIMARY KEY AUTO_INCREMENT,
+nome VARCHAR(50) NOT NULL,
+cpf_cnpj VARCHAR(20) NOT NULL,
+telefone VARCHAR(15) NOT NULL,
+email VARCHAR(50) NOT NULL,
+endereco VARCHAR(100) NOT NULL,
+cidade VARCHAR(50) NOT NULL,
+estado VARCHAR(30) NOT NULL,
+data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+limite_credito DECIMAL(10,2) NOT NULL,
+status VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE fornecedor (
+fornecedor_id INT PRIMARY KEY AUTO_INCREMENT,
+nome VARCHAR(50) NOT NULL,
+cpf_cnpj VARCHAR(20) NOT NULL,
+telefone VARCHAR(20) NOT NULL,
+email VARCHAR(50) NOT NULL,
+endereco VARCHAR(100) NOT NULL,
+cidade VARCHAR(50) NOT NULL,
+estado VARCHAR(30) NOT NULL,
+data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+status VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE categoria (
+categoria_id INT PRIMARY KEY AUTO_INCREMENT,
+nome VARCHAR(50) NOT NULL,
+descricao VARCHAR(100) NOT NULL,
+status VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE produto (
+produto_id INT PRIMARY KEY AUTO_INCREMENT,
+codigo VARCHAR(30) NOT NULL,
+descricao VARCHAR(50) NOT NULL,
+preco_venda DECIMAL(10,2) NOT NULL,
+preco_custo DECIMAL(10,2) NOT NULL,
+estoque_atual INT NOT NULL,
+estoque_minimo INT NOT NULL,
+categoria_id INT,
+unidade_medida VARCHAR(20) NOT NULL,
+data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+status VARCHAR(20) NOT NULL,
+FOREIGN KEY (categoria_id) REFERENCES categoria(categoria_id)
+);
+
+CREATE TABLE funcionario (
+funcionario_id INT PRIMARY KEY AUTO_INCREMENT,
+nome VARCHAR(50) NOT NULL,
+cpf VARCHAR(20) NOT NULL,
+cargo VARCHAR(50) NOT NULL,
+data_contratacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+salario DECIMAL(10,2) NOT NULL,
+telefone VARCHAR(15) NOT NULL,
+email VARCHAR(60) NOT NULL,
+status VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE transportadora (
+transportadora_id INT PRIMARY KEY AUTO_INCREMENT,
+nome VARCHAR(50) NOT NULL,
+cnpj VARCHAR(20) NOT NULL,
+telefone VARCHAR(20) NOT NULL,
+email VARCHAR(50) NOT NULL,
+status VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE rota (
+rota_id INT PRIMARY KEY AUTO_INCREMENT,
+nome VARCHAR(50) NOT NULL,
+origem VARCHAR(50) NOT NULL,
+destino VARCHAR(50) NOT NULL,
+distancia_km DECIMAL(10,2) NOT NULL,
+tempo_estimado INT NOT NULL,
+transportadora_id INT,
+status VARCHAR(20) NOT NULL,
+FOREIGN KEY (transportadora_id) REFERENCES transportadora(transportadora_id)
+);
+
+CREATE TABLE venda (
+venda_id INT PRIMARY KEY AUTO_INCREMENT,
+data_venda DATETIME DEFAULT CURRENT_TIMESTAMP,
+cliente_id INT NOT NULL,
+funcionario_id INT NOT NULL,
+valor_total DECIMAL(10,2) NOT NULL,
+desconto DECIMAL(10,2) NOT NULL,
+forma_pagamento VARCHAR(20) NOT NULL,
+status VARCHAR(20) NOT NULL,
+observacao VARCHAR(100),
+FOREIGN KEY (cliente_id) REFERENCES cliente(cliente_id),
+FOREIGN KEY (funcionario_id) REFERENCES funcionario(funcionario_id)
+);
+
+CREATE TABLE item_venda (
+item_venda_id INT PRIMARY KEY AUTO_INCREMENT,
+venda_id INT NOT NULL,
+produto_id INT NOT NULL,
+quantidade INT NOT NULL,
+preco_unitario DECIMAL(10,2) NOT NULL,
+desconto DECIMAL(10,2) NOT NULL,
+valor_total DECIMAL(10,2) NOT NULL,
+FOREIGN KEY (venda_id) REFERENCES venda(venda_id),
+FOREIGN KEY (produto_id) REFERENCES produto(produto_id)
+);
+
+CREATE TABLE compra (
+compra_id INT PRIMARY KEY AUTO_INCREMENT,
+data_compra DATETIME DEFAULT CURRENT_TIMESTAMP,
+fornecedor_id INT NOT NULL,
+funcionario_id INT NOT NULL,
+valor_total DECIMAL(10,2) NOT NULL,
+status VARCHAR(20) NOT NULL,
+observacao VARCHAR(100),
+FOREIGN KEY (fornecedor_id) REFERENCES fornecedor(fornecedor_id),
+FOREIGN KEY (funcionario_id) REFERENCES funcionario(funcionario_id)
+);
+
+CREATE TABLE item_compra (
+item_compra_id INT PRIMARY KEY AUTO_INCREMENT,
+compra_id INT NOT NULL,
+produto_id INT NOT NULL,
+quantidade INT NOT NULL,
+preco_unitario DECIMAL(10,2) NOT NULL,
+valor_total DECIMAL(10,2) NOT NULL,
+FOREIGN KEY (compra_id) REFERENCES compra(compra_id),
+FOREIGN KEY (produto_id) REFERENCES produto(produto_id)
+);
+
+CREATE TABLE producao (
+producao_id INT PRIMARY KEY AUTO_INCREMENT,
+data_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
+data_fim DATETIME,
+funcionario_id INT,
+status VARCHAR(20) NOT NULL,
+observacao VARCHAR(100),
+FOREIGN KEY (funcionario_id) REFERENCES funcionario(funcionario_id)
+);
+
+CREATE TABLE item_producao (
+item_producao_id INT PRIMARY KEY AUTO_INCREMENT,
+producao_id INT NOT NULL,
+produto_id INT NOT NULL,
+quantidade_planejada INT NOT NULL,
+quantidade_produzida INT NOT NULL,
+custo_unitario DECIMAL(10,2) NOT NULL,
+valor_total DECIMAL(10,2) NOT NULL,
+FOREIGN KEY (producao_id) REFERENCES producao(producao_id),
+FOREIGN KEY (produto_id) REFERENCES produto(produto_id)
+);
+
+CREATE TABLE pedido (
+pedido_id INT PRIMARY KEY AUTO_INCREMENT,
+data_pedido DATETIME DEFAULT CURRENT_TIMESTAMP,
+cliente_id INT NOT NULL,
+funcionario_id INT NOT NULL,
+data_entrega_prevista DATE NOT NULL,
+rota_id INT,
+valor_total DECIMAL(10,2) NOT NULL,
+status VARCHAR(20) NOT NULL,
+observacao VARCHAR(100),
+FOREIGN KEY (cliente_id) REFERENCES cliente(cliente_id),
+FOREIGN KEY (funcionario_id) REFERENCES funcionario(funcionario_id),
+FOREIGN KEY (rota_id) REFERENCES rota(rota_id)
+);
+
+CREATE TABLE item_pedido (
+item_pedido_id INT PRIMARY KEY AUTO_INCREMENT,
+pedido_id INT NOT NULL,
+produto_id INT NOT NULL,
+quantidade INT NOT NULL,
+preco_unitario DECIMAL(10,2) NOT NULL,
+desconto DECIMAL(10,2) NOT NULL,
+valor_total DECIMAL(10,2) NOT NULL,
+FOREIGN KEY (pedido_id) REFERENCES pedido(pedido_id),
+FOREIGN KEY (produto_id) REFERENCES produto(produto_id)
+);
+
+
+INSERT INTO cliente
+(nome, cpf_cnpj, telefone, email, endereco, cidade, estado, limite_credito, status)
+VALUES
+('Ana Souza', '123.456.789-01', '38999990001', '[ana.souza@email.com](mailto:ana.souza@email.com)', 'Rua das Flores, 10', 'Itamarandiba', 'MG', 500.00, 'ativo'),
+('Bruno Silva', '123.456.789-02', '38999990002', '[bruno.silva@email.com](mailto:bruno.silva@email.com)', 'Rua Central, 25', 'Diamantina', 'MG', 800.00, 'ativo'),
+('Carlos Mendes', '123.456.789-03', '38999990003', '[carlos.mendes@email.com](mailto:carlos.mendes@email.com)', 'Rua A, 30', 'Capelinha', 'MG', 1000.00, 'ativo'),
+('Daniela Rocha', '123.456.789-04', '38999990004', '[daniela.rocha@email.com](mailto:daniela.rocha@email.com)', 'Avenida Brasil, 45', 'Turmalina', 'MG', 700.00, 'ativo'),
+('Eduardo Lima', '123.456.789-05', '38999990005', '[eduardo.lima@email.com](mailto:eduardo.lima@email.com)', 'Rua Minas, 50', 'Minas Novas', 'MG', 1200.00, 'ativo'),
+('Fernanda Alves', '123.456.789-06', '38999990006', '[fernanda.alves@email.com](mailto:fernanda.alves@email.com)', 'Rua Goiás, 60', 'Araçuaí', 'MG', 600.00, 'ativo'),
+('Gabriel Costa', '123.456.789-07', '38999990007', '[gabriel.costa@email.com](mailto:gabriel.costa@email.com)', 'Rua do Sol, 70', 'Teófilo Otoni', 'MG', 900.00, 'ativo'),
+('Helena Martins', '123.456.789-08', '38999990008', '[helena.martins@email.com](mailto:helena.martins@email.com)', 'Rua das Acácias, 80', 'Belo Horizonte', 'MG', 1500.00, 'ativo'),
+('Igor Pereira', '123.456.789-09', '38999990009', '[igor.pereira@email.com](mailto:igor.pereira@email.com)', 'Rua Nova, 90', 'Contagem', 'MG', 400.00, 'inativo'),
+('Juliana Freitas', '123.456.789-10', '38999990010', '[juliana.freitas@email.com](mailto:juliana.freitas@email.com)', 'Rua Verde, 100', 'Betim', 'MG', 1100.00, 'ativo'),
+('Kleber Santos', '123.456.789-11', '38999990011', '[kleber.santos@email.com](mailto:kleber.santos@email.com)', 'Rua Azul, 110', 'Uberlândia', 'MG', 750.00, 'ativo'),
+('Larissa Gomes', '123.456.789-12', '38999990012', '[larissa.gomes@email.com](mailto:larissa.gomes@email.com)', 'Rua Rosa, 120', 'Uberaba', 'MG', 850.00, 'ativo'),
+('Marcos Oliveira', '123.456.789-13', '38999990013', '[marcos.oliveira@email.com](mailto:marcos.oliveira@email.com)', 'Rua Amarela, 130', 'Montes Claros', 'MG', 950.00, 'ativo'),
+('Natália Ribeiro', '123.456.789-14', '38999990014', '[natalia.ribeiro@email.com](mailto:natalia.ribeiro@email.com)', 'Rua da Paz, 140', 'Januária', 'MG', 650.00, 'ativo'),
+('Otávio Castro', '123.456.789-15', '38999990015', '[otavio.castro@email.com](mailto:otavio.castro@email.com)', 'Rua das Palmeiras, 150', 'Salinas', 'MG', 1300.00, 'ativo'),
+('Patrícia Lopes', '123.456.789-16', '38999990016', '[patricia.lopes@email.com](mailto:patricia.lopes@email.com)', 'Rua do Comércio, 160', 'Almenara', 'MG', 500.00, 'inativo'),
+('Rafael Barbosa', '123.456.789-17', '38999990017', '[rafael.barbosa@email.com](mailto:rafael.barbosa@email.com)', 'Rua São José, 170', 'Governador Valadares', 'MG', 1000.00, 'ativo'),
+('Sabrina Nunes', '123.456.789-18', '38999990018', '[sabrina.nunes@email.com](mailto:sabrina.nunes@email.com)', 'Rua Santa Luzia, 180', 'Ipatinga', 'MG', 800.00, 'ativo'),
+('Tiago Ferreira', '123.456.789-19', '38999990019', '[tiago.ferreira@email.com](mailto:tiago.ferreira@email.com)', 'Rua do Lago, 190', 'Juiz de Fora', 'MG', 900.00, 'ativo'),
+('Vanessa Dias', '123.456.789-20', '38999990020', '[vanessa.dias@email.com](mailto:vanessa.dias@email.com)', 'Rua Vitória, 200', 'Barbacena', 'MG', 700.00, 'ativo'),
+('William Araújo', '123.456.789-21', '38999990021', '[william.araujo@email.com](mailto:william.araujo@email.com)', 'Rua Primavera, 210', 'Lavras', 'MG', 1200.00, 'ativo'),
+('Yasmin Melo', '123.456.789-22', '38999990022', '[yasmin.melo@email.com](mailto:yasmin.melo@email.com)', 'Rua Outono, 220', 'Varginha', 'MG', 600.00, 'ativo'),
+('André Cardoso', '123.456.789-23', '38999990023', '[andre.cardoso@email.com](mailto:andre.cardoso@email.com)', 'Rua Inverno, 230', 'Poços de Caldas', 'MG', 750.00, 'ativo'),
+('Beatriz Reis', '123.456.789-24', '38999990024', '[beatriz.reis@email.com](mailto:beatriz.reis@email.com)', 'Rua Verão, 240', 'Pouso Alegre', 'MG', 950.00, 'ativo'),
+('Caio Moreira', '123.456.789-25', '38999990025', '[caio.moreira@email.com](mailto:caio.moreira@email.com)', 'Rua do Campo, 250', 'Divinópolis', 'MG', 850.00, 'ativo'),
+('Débora Farias', '123.456.789-26', '38999990026', '[debora.farias@email.com](mailto:debora.farias@email.com)', 'Rua do Mercado, 260', 'Sete Lagoas', 'MG', 550.00, 'inativo'),
+('Elias Teixeira', '123.456.789-27', '38999990027', '[elias.teixeira@email.com](mailto:elias.teixeira@email.com)', 'Rua do Cruzeiro, 270', 'Curvelo', 'MG', 1000.00, 'ativo'),
+('Flávia Moura', '123.456.789-28', '38999990028', '[flavia.moura@email.com](mailto:flavia.moura@email.com)', 'Rua da Serra, 280', 'Gouveia', 'MG', 700.00, 'ativo'),
+('Gustavo Pires', '123.456.789-29', '38999990029', '[gustavo.pires@email.com](mailto:gustavo.pires@email.com)', 'Rua do Centro, 290', 'Datas', 'MG', 800.00, 'ativo'),
+('Hugo Campos', '123.456.789-30', '38999990030', '[hugo.campos@email.com](mailto:hugo.campos@email.com)', 'Rua Principal, 300', 'Serro', 'MG', 900.00, 'ativo'),
+('Isabela Duarte', '123.456.789-31', '38999990031', '[isabela.duarte@email.com](mailto:isabela.duarte@email.com)', 'Rua Bela Vista, 310', 'Conceição do Mato Dentro', 'MG', 1100.00, 'ativo'),
+('João Vitor', '123.456.789-32', '38999990032', '[joao.vitor@email.com](mailto:joao.vitor@email.com)', 'Rua do Rio, 320', 'Alvorada de Minas', 'MG', 650.00, 'ativo'),
+('Karina Braga', '123.456.789-33', '38999990033', '[karina.braga@email.com](mailto:karina.braga@email.com)', 'Rua das Pedras, 330', 'Couto de Magalhães de Minas', 'MG', 750.00, 'ativo'),
+('Leonardo Ramos', '123.456.789-34', '38999990034', '[leonardo.ramos@email.com](mailto:leonardo.ramos@email.com)', 'Rua dos Ipês, 340', 'Felício dos Santos', 'MG', 850.00, 'ativo'),
+('Mariana Coelho', '123.456.789-35', '38999990035', '[mariana.coelho@email.com](mailto:mariana.coelho@email.com)', 'Rua do Bosque, 350', 'Presidente Kubitschek', 'MG', 1000.00, 'ativo'),
+('Nelson Vieira', '123.456.789-36', '38999990036', '[nelson.vieira@email.com](mailto:nelson.vieira@email.com)', 'Rua São Pedro, 360', 'Rio Vermelho', 'MG', 500.00, 'inativo'),
+('Olívia Cunha', '123.456.789-37', '38999990037', '[olivia.cunha@email.com](mailto:olivia.cunha@email.com)', 'Rua Santa Rita, 370', 'Sabinópolis', 'MG', 900.00, 'ativo'),
+('Paulo César', '123.456.789-38', '38999990038', '[paulo.cesar@email.com](mailto:paulo.cesar@email.com)', 'Rua das Oliveiras, 380', 'Guanhães', 'MG', 700.00, 'ativo'),
+('Renata Azevedo', '123.456.789-39', '38999990039', '[renata.azevedo@email.com](mailto:renata.azevedo@email.com)', 'Rua das Hortênsias, 390', 'Virginópolis', 'MG', 1200.00, 'ativo'),
+('Samuel Torres', '123.456.789-40', '38999990040', '[samuel.torres@email.com](mailto:samuel.torres@email.com)', 'Rua das Laranjeiras, 400', 'Peçanha', 'MG', 600.00, 'ativo'),
+('Tatiane Borges', '123.456.789-41', '38999990041', '[tatiane.borges@email.com](mailto:tatiane.borges@email.com)', 'Rua da Escola, 410', 'São João Evangelista', 'MG', 800.00, 'ativo'),
+('Ulisses Rocha', '123.456.789-42', '38999990042', '[ulisses.rocha@email.com](mailto:ulisses.rocha@email.com)', 'Rua da Igreja, 420', 'Santa Maria do Suaçuí', 'MG', 900.00, 'ativo'),
+('Valéria Matos', '123.456.789-43', '38999990043', '[valeria.matos@email.com](mailto:valeria.matos@email.com)', 'Rua do Hospital, 430', 'São José do Jacuri', 'MG', 750.00, 'ativo'),
+('Wagner Reis', '123.456.789-44', '38999990044', '[wagner.reis@email.com](mailto:wagner.reis@email.com)', 'Rua da Praça, 440', 'Paulistas', 'MG', 1000.00, 'ativo'),
+('Aline Neves', '123.456.789-45', '38999990045', '[aline.neves@email.com](mailto:aline.neves@email.com)', 'Rua do Jardim, 450', 'Coluna', 'MG', 500.00, 'inativo'),
+('Brenda Melo', '123.456.789-46', '38999990046', '[brenda.melo@email.com](mailto:brenda.melo@email.com)', 'Rua da Fonte, 460', 'São Pedro do Suaçuí', 'MG', 700.00, 'ativo'),
+('César Tavares', '123.456.789-47', '38999990047', '[cesar.tavares@email.com](mailto:cesar.tavares@email.com)', 'Rua do Vale, 470', 'Frei Lagonegro', 'MG', 850.00, 'ativo'),
+('Daiane Lima', '123.456.789-48', '38999990048', '[daiane.lima@email.com](mailto:daiane.lima@email.com)', 'Rua do Ouro, 480', 'José Raydan', 'MG', 650.00, 'ativo'),
+('Emerson Sales', '123.456.789-49', '38999990049', '[emerson.sales@email.com](mailto:emerson.sales@email.com)', 'Rua da Mata, 490', 'Materlândia', 'MG', 950.00, 'ativo'),
+('Fabiana Cruz', '123.456.789-50', '38999990050', '[fabiana.cruz@email.com](mailto:fabiana.cruz@email.com)', 'Rua das Águas, 500', 'Dom Joaquim', 'MG', 1100.00, 'ativo'),
+('Gilberto Fonseca', '123.456.789-51', '38999990051', '[gilberto.fonseca@email.com](mailto:gilberto.fonseca@email.com)', 'Rua do Norte, 510', 'Belo Horizonte', 'MG', 800.00, 'ativo'),
+('Heloísa Pacheco', '123.456.789-52', '38999990052', '[heloisa.pacheco@email.com](mailto:heloisa.pacheco@email.com)', 'Rua do Sul, 520', 'Contagem', 'MG', 600.00, 'ativo'),
+('Ivan Moraes', '123.456.789-53', '38999990053', '[ivan.moraes@email.com](mailto:ivan.moraes@email.com)', 'Rua do Leste, 530', 'Betim', 'MG', 700.00, 'ativo'),
+('Jéssica Paiva', '123.456.789-54', '38999990054', '[jessica.paiva@email.com](mailto:jessica.paiva@email.com)', 'Rua do Oeste, 540', 'Nova Lima', 'MG', 900.00, 'ativo'),
+('Kátia Rezende', '123.456.789-55', '38999990055', '[katia.rezende@email.com](mailto:katia.rezende@email.com)', 'Rua Horizonte, 550', 'Sabará', 'MG', 1000.00, 'ativo'),
+('Lucas Figueiredo', '123.456.789-56', '38999990056', '[lucas.figueiredo@email.com](mailto:lucas.figueiredo@email.com)', 'Rua da Liberdade, 560', 'Caeté', 'MG', 500.00, 'inativo'),
+('Márcia Sales', '123.456.789-57', '38999990057', '[marcia.sales@email.com](mailto:marcia.sales@email.com)', 'Rua do Trabalho, 570', 'Ouro Preto', 'MG', 750.00, 'ativo'),
+('Nicolas Brandão', '123.456.789-58', '38999990058', '[nicolas.brandao@email.com](mailto:nicolas.brandao@email.com)', 'Rua da Esperança, 580', 'Mariana', 'MG', 850.00, 'ativo'),
+('Paula Andrade', '123.456.789-59', '38999990059', '[paula.andrade@email.com](mailto:paula.andrade@email.com)', 'Rua da Alegria, 590', 'Congonhas', 'MG', 950.00, 'ativo'),
+('Roberto Diniz', '123.456.789-60', '38999990060', '[roberto.diniz@email.com](mailto:roberto.diniz@email.com)', 'Rua da União, 600', 'Conselheiro Lafaiete', 'MG', 1200.00, 'ativo'),
+('Sônia Queiroz', '123.456.789-61', '38999990061', '[sonia.queiroz@email.com](mailto:sonia.queiroz@email.com)', 'Rua da Amizade, 610', 'Itabirito', 'MG', 650.00, 'ativo'),
+('Túlio Bastos', '123.456.789-62', '38999990062', '[tulio.bastos@email.com](mailto:tulio.bastos@email.com)', 'Rua das Montanhas, 620', 'Ouro Branco', 'MG', 700.00, 'ativo'),
+('Vera Lúcia', '123.456.789-63', '38999990063', '[vera.lucia@email.com](mailto:vera.lucia@email.com)', 'Rua da Cachoeira, 630', 'Carandaí', 'MG', 800.00, 'ativo'),
+('Wesley Barros', '123.456.789-64', '38999990064', '[wesley.barros@email.com](mailto:wesley.barros@email.com)', 'Rua da Estação, 640', 'Ressaquinha', 'MG', 900.00, 'ativo'),
+('Adriana Monteiro', '123.456.789-65', '38999990065', '[adriana.monteiro@email.com](mailto:adriana.monteiro@email.com)', 'Rua do Parque, 650', 'Barbacena', 'MG', 1100.00, 'ativo'),
+('Bernardo Cunha', '123.456.789-66', '38999990066', '[bernardo.cunha@email.com](mailto:bernardo.cunha@email.com)', 'Rua da Ponte, 660', 'Juiz de Fora', 'MG', 500.00, 'inativo'),
+('Camila Xavier', '123.456.789-67', '38999990067', '[camila.xavier@email.com](mailto:camila.xavier@email.com)', 'Rua do Teatro, 670', 'Leopoldina', 'MG', 700.00, 'ativo'),
+('Diego Matias', '123.456.789-68', '38999990068', '[diego.matias@email.com](mailto:diego.matias@email.com)', 'Rua do Porto, 680', 'Muriaé', 'MG', 850.00, 'ativo'),
+('Eliane Reis', '123.456.789-69', '38999990069', '[eliane.reis@email.com](mailto:eliane.reis@email.com)', 'Rua do Carmo, 690', 'Viçosa', 'MG', 950.00, 'ativo'),
+('Fábio Dias', '123.456.789-70', '38999990070', '[fabio.dias@email.com](mailto:fabio.dias@email.com)', 'Rua do Colégio, 700', 'Ponte Nova', 'MG', 1000.00, 'ativo'),
+('Geovana Pimenta', '123.456.789-71', '38999990071', '[geovana.pimenta@email.com](mailto:geovana.pimenta@email.com)', 'Rua da Feira, 710', 'Manhuaçu', 'MG', 650.00, 'ativo'),
+('Henrique Maia', '123.456.789-72', '38999990072', '[henrique.maia@email.com](mailto:henrique.maia@email.com)', 'Rua do Café, 720', 'Caratinga', 'MG', 800.00, 'ativo'),
+('Ingrid Souza', '123.456.789-73', '38999990073', '[ingrid.souza@email.com](mailto:ingrid.souza@email.com)', 'Rua da Fazenda, 730', 'Aimorés', 'MG', 750.00, 'ativo'),
+('Jorge Nascimento', '123.456.789-74', '38999990074', '[jorge.nascimento@email.com](mailto:jorge.nascimento@email.com)', 'Rua do Bairro, 740', 'Resplendor', 'MG', 900.00, 'ativo'),
+('Kelly Cristina', '123.456.789-75', '38999990075', '[kelly.cristina@email.com](mailto:kelly.cristina@email.com)', 'Rua do Terminal, 750', 'Mantena', 'MG', 1100.00, 'ativo'),
+('Leandro Braga', '123.456.789-76', '38999990076', '[leandro.braga@email.com](mailto:leandro.braga@email.com)', 'Rua do Campo, 760', 'Governador Valadares', 'MG', 500.00, 'inativo'),
+('Michele Campos', '123.456.789-77', '38999990077', '[michele.campos@email.com](mailto:michele.campos@email.com)', 'Rua do Estádio, 770', 'Ipatinga', 'MG', 700.00, 'ativo'),
+('Natan Alves', '123.456.789-78', '38999990078', '[natan.alves@email.com](mailto:natan.alves@email.com)', 'Rua do Clube, 780', 'Coronel Fabriciano', 'MG', 850.00, 'ativo'),
+('Priscila Mendes', '123.456.789-79', '38999990079', '[priscila.mendes@email.com](mailto:priscila.mendes@email.com)', 'Rua do Banco, 790', 'Timóteo', 'MG', 950.00, 'ativo'),
+('Rogério Lopes', '123.456.789-80', '38999990080', '[rogerio.lopes@email.com](mailto:rogerio.lopes@email.com)', 'Rua da Rodovia, 800', 'João Monlevade', 'MG', 1000.00, 'ativo'),
+('Simone Costa', '123.456.789-81', '38999990081', '[simone.costa@email.com](mailto:simone.costa@email.com)', 'Rua do Trevo, 810', 'Itabira', 'MG', 600.00, 'ativo'),
+('Tadeu Ribeiro', '123.456.789-82', '38999990082', '[tadeu.ribeiro@email.com](mailto:tadeu.ribeiro@email.com)', 'Rua das Minas, 820', 'Santa Bárbara', 'MG', 800.00, 'ativo'),
+('Valdemar Dias', '123.456.789-83', '38999990083', '[valdemar.dias@email.com](mailto:valdemar.dias@email.com)', 'Rua da Mina, 830', 'Nova Era', 'MG', 700.00, 'ativo'),
+('Ariane Faria', '123.456.789-84', '38999990084', '[ariane.faria@email.com](mailto:ariane.faria@email.com)', 'Rua do Engenho, 840', 'Rio Piracicaba', 'MG', 900.00, 'ativo'),
+('Breno Guimarães', '123.456.789-85', '38999990085', '[breno.guimaraes@email.com](mailto:breno.guimaraes@email.com)', 'Rua da Vila, 850', 'São Gonçalo do Rio Abaixo', 'MG', 1100.00, 'ativo'),
+('Cristiane Nery', '123.456.789-86', '38999990086', '[cristiane.nery@email.com](mailto:cristiane.nery@email.com)', 'Rua do Distrito, 860', 'Bom Jesus do Amparo', 'MG', 500.00, 'inativo'),
+('Douglas Correia', '123.456.789-87', '38999990087', '[douglas.correia@email.com](mailto:douglas.correia@email.com)', 'Rua das Pedrinhas, 870', 'Ferros', 'MG', 750.00, 'ativo'),
+('Erika Paes', '123.456.789-88', '38999990088', '[erika.paes@email.com](mailto:erika.paes@email.com)', 'Rua do Mirante, 880', 'Antônio Dias', 'MG', 850.00, 'ativo'),
+('Felipe França', '123.456.789-89', '38999990089', '[felipe.franca@email.com](mailto:felipe.franca@email.com)', 'Rua das Andorinhas, 890', 'Catas Altas', 'MG', 950.00, 'ativo'),
+('Glória Miranda', '123.456.789-90', '38999990090', '[gloria.miranda@email.com](mailto:gloria.miranda@email.com)', 'Rua das Estrelas, 900', 'Santa Maria de Itabira', 'MG', 1000.00, 'ativo'),
+('Humberto Leal', '123.456.789-91', '38999990091', '[humberto.leal@email.com](mailto:humberto.leal@email.com)', 'Rua do Planalto, 910', 'Itambé do Mato Dentro', 'MG', 650.00, 'ativo'),
+('Ivone Freire', '123.456.789-92', '38999990092', '[ivone.freire@email.com](mailto:ivone.freire@email.com)', 'Rua do Cerrado, 920', 'Morro do Pilar', 'MG', 700.00, 'ativo'),
+('José Augusto', '123.456.789-93', '38999990093', '[jose.augusto@email.com](mailto:jose.augusto@email.com)', 'Rua das Nuvens, 930', 'Santo Antônio do Itambé', 'MG', 800.00, 'ativo'),
+('Lúcia Helena', '123.456.789-94', '38999990094', '[lucia.helena@email.com](mailto:lucia.helena@email.com)', 'Rua das Rosas, 940', 'Senador Modestino Gonçalves', 'MG', 900.00, 'ativo'),
+('Mateus Farias', '123.456.789-95', '38999990095', '[mateus.farias@email.com](mailto:mateus.farias@email.com)', 'Rua do Horizonte, 950', 'Carbonita', 'MG', 1100.00, 'ativo'),
+('Nádia Ribeiro', '123.456.789-96', '38999990096', '[nadia.ribeiro@email.com](mailto:nadia.ribeiro@email.com)', 'Rua das Fontes, 960', 'Leme do Prado', 'MG', 500.00, 'inativo'),
+('Orlando Neves', '123.456.789-97', '38999990097', '[orlando.neves@email.com](mailto:orlando.neves@email.com)', 'Rua do Cedro, 970', 'Veredinha', 'MG', 750.00, 'ativo'),
+('Raquel Pires', '123.456.789-98', '38999990098', '[raquel.pires@email.com](mailto:raquel.pires@email.com)', 'Rua da Lua, 980', 'Chapada do Norte', 'MG', 850.00, 'ativo'),
+('Sérgio Oliveira', '123.456.789-99', '38999990099', '[sergio.oliveira@email.com](mailto:sergio.oliveira@email.com)', 'Rua do Cruzeiro, 990', 'Berilo', 'MG', 950.00, 'ativo'),
+('Talita Moura', '123.456.789-100', '38999990100', '[talita.moura@email.com](mailto:talita.moura@email.com)', 'Rua da Serra, 1000', 'Francisco Badaró', 'MG', 1200.00, 'ativo');
+
+INSERT INTO fornecedor
+(nome, cpf_cnpj, telefone, email, endereco, cidade, estado, status)
+VALUES
+('Alimentos Minas LTDA', '12.345.678/0001-01', '38999991001', 'contato@alimentosminas.com', 'Rua das Flores, 10', 'Itamarandiba', 'MG', 'ativo'),
+('Distribuidora Vale LTDA', '12.345.678/0001-02', '38999991002', 'vendas@distribuidoravale.com', 'Avenida Central, 25', 'Diamantina', 'MG', 'ativo'),
+('Comercial Horizonte LTDA', '12.345.678/0001-03', '38999991003', 'contato@horizonte.com', 'Rua do Comércio, 30', 'Capelinha', 'MG', 'ativo'),
+('Bebidas Gerais LTDA', '12.345.678/0001-04', '38999991004', 'vendas@bebidasgerais.com', 'Rua Minas Gerais, 45', 'Turmalina', 'MG', 'ativo'),
+('Papelaria Estrela LTDA', '12.345.678/0001-05', '38999991005', 'contato@papelariaestrela.com', 'Rua das Acácias, 50', 'Minas Novas', 'MG', 'ativo'),
+('Limpeza Brasil LTDA', '12.345.678/0001-06', '38999991006', 'vendas@limpezabrasil.com', 'Rua do Sol, 60', 'Araçuaí', 'MG', 'ativo'),
+('Tecnologia Minas LTDA', '12.345.678/0001-07', '38999991007', 'contato@tecnologiaminas.com', 'Avenida Brasil, 70', 'Teófilo Otoni', 'MG', 'ativo'),
+('Embalagens Forte LTDA', '12.345.678/0001-08', '38999991008', 'vendas@embalagensforte.com', 'Rua das Palmeiras, 80', 'Belo Horizonte', 'MG', 'ativo'),
+('Atacado Imperial LTDA', '12.345.678/0001-09', '38999991009', 'contato@atacadoimperial.com', 'Rua Nova, 90', 'Contagem', 'MG', 'ativo'),
+('Mercantil São José LTDA', '12.345.678/0001-10', '38999991010', 'vendas@mercantilsaojose.com', 'Rua São José, 100', 'Betim', 'MG', 'ativo'),
+('Fazenda Boa Vista LTDA', '12.345.678/0001-11', '38999991011', 'contato@fazendaboavista.com', 'Estrada Rural, 110', 'Uberlândia', 'MG', 'ativo'),
+('Distribuidora União LTDA', '12.345.678/0001-12', '38999991012', 'vendas@distribuidorauniao.com', 'Rua da União, 120', 'Uberaba', 'MG', 'ativo'),
+('Comercial Primavera LTDA', '12.345.678/0001-13', '38999991013', 'contato@comercialprimavera.com', 'Rua Primavera, 130', 'Montes Claros', 'MG', 'ativo'),
+('Produtos do Campo LTDA', '12.345.678/0001-14', '38999991014', 'vendas@produtosdocampo.com', 'Rua do Campo, 140', 'Januária', 'MG', 'ativo'),
+('Atacado Mineiro LTDA', '12.345.678/0001-15', '38999991015', 'contato@atacadomineiro.com', 'Rua Minas, 150', 'Salinas', 'MG', 'ativo'),
+('Distribuidora Central LTDA', '12.345.678/0001-16', '38999991016', 'vendas@distribuidoracentral.com', 'Rua Central, 160', 'Almenara', 'MG', 'ativo'),
+('Comercial Boa Compra LTDA', '12.345.678/0001-17', '38999991017', 'contato@boacompra.com', 'Rua do Mercado, 170', 'Governador Valadares', 'MG', 'ativo'),
+('Indústria Minas LTDA', '12.345.678/0001-18', '38999991018', 'vendas@industriaminas.com', 'Rua da Indústria, 180', 'Ipatinga', 'MG', 'ativo'),
+('Fornecedora Nacional LTDA', '12.345.678/0001-19', '38999991019', 'contato@fornecedoracional.com', 'Rua Nacional, 190', 'Juiz de Fora', 'MG', 'ativo'),
+('Comercial Diamante LTDA', '12.345.678/0001-20', '38999991020', 'vendas@comercialdiamante.com', 'Rua Diamante, 200', 'Barbacena', 'MG', 'ativo'),
+('Distribuidora Brasil LTDA', '12.345.678/0001-21', '38999991021', 'contato@distribuidorabrasil.com', 'Avenida Brasil, 210', 'Lavras', 'MG', 'ativo'),
+('Atacado Econômico LTDA', '12.345.678/0001-22', '38999991022', 'vendas@atacadoeconomico.com', 'Rua Econômica, 220', 'Varginha', 'MG', 'ativo'),
+('Comercial Serra Azul LTDA', '12.345.678/0001-23', '38999991023', 'contato@serraazul.com', 'Rua da Serra, 230', 'Poços de Caldas', 'MG', 'ativo'),
+('Produtos Gerais LTDA', '12.345.678/0001-24', '38999991024', 'vendas@produtosgerais.com', 'Rua Geral, 240', 'Pouso Alegre', 'MG', 'ativo'),
+('Distribuidora Sul LTDA', '12.345.678/0001-25', '38999991025', 'contato@distribuidorasul.com', 'Rua do Sul, 250', 'Divinópolis', 'MG', 'ativo'),
+('Comercial Nova Era LTDA', '12.345.678/0001-26', '38999991026', 'vendas@comercialnovaera.com', 'Rua Nova Era, 260', 'Sete Lagoas', 'MG', 'ativo'),
+('Atacado Bom Preço LTDA', '12.345.678/0001-27', '38999991027', 'contato@atacadobompreco.com', 'Rua do Atacado, 270', 'Curvelo', 'MG', 'ativo'),
+('Distribuidora Ouro LTDA', '12.345.678/0001-28', '38999991028', 'vendas@distribuidoraouro.com', 'Rua do Ouro, 280', 'Gouveia', 'MG', 'ativo'),
+('Comercial Vale Verde LTDA', '12.345.678/0001-29', '38999991029', 'contato@valeverde.com', 'Rua Verde, 290', 'Serro', 'MG', 'ativo'),
+('Fornecedora Minas LTDA', '12.345.678/0001-30', '38999991030', 'vendas@fornecedoraminas.com', 'Rua das Minas, 300', 'Peçanha', 'MG', 'ativo');
+
+INSERT INTO produto
+(codigo, descricao, preco_venda, preco_custo, estoque_atual, estoque_minimo, categoria_id, unidade_medida, status)
+VALUES
+('001', 'Arroz Tipo 1 5kg', 32.90, 24.50, 80, 10, 1, 'UN', 'ativo'),
+('002', 'Feijao Carioca 1kg', 8.99, 5.80, 120, 15, 1, 'UN', 'ativo'),
+('003', 'Acucar Cristal 5kg', 19.90, 13.50, 60, 10, 1, 'UN', 'ativo'),
+('004', 'Cafe Torrado 500g', 18.50, 11.20, 90, 12, 1, 'UN', 'ativo'),
+('005', 'Macarrao Espaguete 500g', 6.99, 3.80, 150, 20, 1, 'UN', 'ativo'),
+('006', 'Oleo de Soja 900ml', 9.50, 6.30, 100, 15, 1, 'UN', 'ativo'),
+('007', 'Sal Refinado 1kg', 3.50, 1.90, 200, 25, 1, 'UN', 'ativo'),
+('008', 'Farinha de Trigo 1kg', 7.99, 4.70, 110, 15, 1, 'UN', 'ativo'),
+('009', 'Leite Integral 1L', 5.99, 3.90, 180, 25, 1, 'UN', 'ativo'),
+('010', 'Biscoito Recheado 140g', 4.50, 2.40, 130, 20, 1, 'UN', 'ativo'),
+('011', 'Refrigerante Cola 2L', 10.99, 7.20, 90, 12, 2, 'UN', 'ativo'),
+('012', 'Agua Mineral 500ml', 2.50, 1.20, 250, 30, 2, 'UN', 'ativo'),
+('013', 'Suco de Laranja 1L', 8.99, 5.60, 75, 10, 2, 'UN', 'ativo'),
+('014', 'Cerveja Sem Alcool 350ml', 5.50, 3.20, 100, 15, 2, 'UN', 'ativo'),
+('015', 'Energetico Lata 269ml', 9.99, 6.50, 60, 10, 2, 'UN', 'ativo'),
+('016', 'Agua com Gas 500ml', 3.20, 1.80, 180, 20, 2, 'UN', 'ativo'),
+('017', 'Cha Gelado Limao 1L', 7.50, 4.30, 80, 10, 2, 'UN', 'ativo'),
+('018', 'Achocolatado 1L', 9.90, 6.10, 70, 10, 2, 'UN', 'ativo'),
+('019', 'Suco de Uva 1L', 12.50, 8.00, 65, 10, 2, 'UN', 'ativo'),
+('020', 'Agua de Coco 1L', 11.99, 7.50, 55, 10, 2, 'UN', 'ativo'),
+('021', 'Detergente Neutro 500ml', 3.99, 2.10, 150, 20, 3, 'UN', 'ativo'),
+('022', 'Sabao em Po 800g', 14.90, 9.40, 85, 10, 3, 'UN', 'ativo'),
+('023', 'Amaciante 2L', 12.50, 7.80, 70, 10, 3, 'UN', 'ativo'),
+('024', 'Desinfetante 2L', 8.99, 5.20, 100, 15, 3, 'UN', 'ativo'),
+('025', 'Agua Sanitaria 1L', 5.50, 3.00, 120, 15, 3, 'UN', 'ativo'),
+('026', 'Esponja Multiuso', 2.99, 1.20, 200, 30, 3, 'UN', 'ativo'),
+('027', 'Pano de Chao', 9.90, 5.50, 60, 10, 3, 'UN', 'ativo'),
+('028', 'Luva de Borracha', 7.50, 4.10, 80, 10, 3, 'PAR', 'ativo'),
+('029', 'Saco de Lixo 50L', 18.90, 11.60, 75, 10, 3, 'PACOTE', 'ativo'),
+('030', 'Papel Toalha', 7.99, 4.30, 90, 12, 3, 'PACOTE', 'ativo'),
+('031', 'Caderno Universitario', 18.90, 11.50, 80, 10, 4, 'UN', 'ativo'),
+('032', 'Caneta Azul', 3.50, 1.20, 250, 30, 4, 'UN', 'ativo'),
+('033', 'Caneta Preta', 3.50, 1.20, 240, 30, 4, 'UN', 'ativo'),
+('034', 'Lapis Preto', 2.50, 0.90, 300, 40, 4, 'UN', 'ativo'),
+('035', 'Borracha Branca', 2.00, 0.70, 220, 30, 4, 'UN', 'ativo'),
+('036', 'Regua 30cm', 4.99, 2.10, 120, 15, 4, 'UN', 'ativo'),
+('037', 'Marca Texto Amarelo', 5.90, 3.20, 100, 15, 4, 'UN', 'ativo'),
+('038', 'Pasta Catalogo', 15.90, 9.50, 70, 10, 4, 'UN', 'ativo'),
+('039', 'Grampeador Metal', 22.50, 14.00, 50, 8, 4, 'UN', 'ativo'),
+('040', 'Caixa de Clips', 6.90, 3.80, 100, 15, 4, 'CAIXA', 'ativo'),
+('041', 'Mouse USB', 39.90, 24.00, 50, 8, 5, 'UN', 'ativo'),
+('042', 'Teclado USB', 69.90, 43.00, 45, 8, 5, 'UN', 'ativo'),
+('043', 'Pendrive 32GB', 35.90, 21.50, 80, 10, 5, 'UN', 'ativo'),
+('044', 'Fone de Ouvido', 49.90, 30.00, 60, 10, 5, 'UN', 'ativo'),
+('045', 'Carregador USB', 45.00, 27.00, 70, 10, 5, 'UN', 'ativo'),
+('046', 'Cabo USB 1 Metro', 19.90, 9.80, 120, 15, 5, 'UN', 'ativo'),
+('047', 'Caixa de Som Bluetooth', 89.90, 55.00, 35, 5, 5, 'UN', 'ativo'),
+('048', 'Webcam HD', 99.90, 62.00, 30, 5, 5, 'UN', 'ativo'),
+('049', 'Adaptador HDMI', 29.90, 16.00, 65, 10, 5, 'UN', 'ativo'),
+('050', 'Suporte para Celular', 24.90, 12.50, 90, 12, 5, 'UN', 'ativo'),
+('051', 'Sabonete Barra', 3.50, 1.80, 180, 25, 6, 'UN', 'ativo'),
+('052', 'Shampoo 350ml', 15.90, 9.20, 80, 10, 6, 'UN', 'ativo'),
+('053', 'Condicionador 350ml', 16.90, 9.80, 75, 10, 6, 'UN', 'ativo'),
+('054', 'Creme Dental 90g', 6.99, 3.50, 130, 20, 6, 'UN', 'ativo'),
+('055', 'Escova Dental', 7.50, 3.90, 110, 15, 6, 'UN', 'ativo'),
+('056', 'Desodorante Aerosol', 14.90, 8.50, 90, 12, 6, 'UN', 'ativo'),
+('057', 'Papel Higienico 4 Unidades', 12.90, 7.60, 100, 15, 6, 'PACOTE', 'ativo'),
+('058', 'Fralda Infantil M', 39.90, 25.00, 60, 10, 6, 'PACOTE', 'ativo'),
+('059', 'Absorvente Feminino', 11.90, 6.80, 85, 10, 6, 'PACOTE', 'ativo'),
+('060', 'Aparelho de Barbear', 8.99, 4.50, 95, 12, 6, 'UN', 'ativo'),
+('061', 'Bala Sortida 500g', 15.90, 8.20, 70, 10, 7, 'PACOTE', 'ativo'),
+('062', 'Chocolate ao Leite 90g', 7.50, 4.00, 120, 15, 7, 'UN', 'ativo'),
+('063', 'Chiclete Menta', 2.50, 1.00, 200, 25, 7, 'UN', 'ativo'),
+('064', 'Pirulito Sortido', 1.50, 0.50, 250, 30, 7, 'UN', 'ativo'),
+('065', 'Biscoito Wafer', 4.99, 2.50, 130, 20, 7, 'UN', 'ativo'),
+('066', 'Paçoca Rolha', 1.99, 0.70, 220, 30, 7, 'UN', 'ativo'),
+('067', 'Doce de Leite 400g', 12.90, 7.40, 60, 10, 7, 'UN', 'ativo'),
+('068', 'Goma de Mascar', 3.50, 1.40, 180, 25, 7, 'UN', 'ativo'),
+('069', 'Amendoim Torrado 500g', 14.90, 8.00, 75, 10, 7, 'UN', 'ativo'),
+('070', 'Bombom Sortido 250g', 18.90, 11.00, 65, 10, 7, 'CAIXA', 'ativo'),
+('071', 'Pao Frances', 15.00, 8.50, 50, 8, 8, 'KG', 'ativo'),
+('072', 'Pao de Forma', 10.90, 6.20, 70, 10, 8, 'UN', 'ativo'),
+('073', 'Bolo de Chocolate', 24.90, 14.00, 30, 5, 8, 'UN', 'ativo'),
+('074', 'Rosquinha Doce', 9.50, 5.00, 80, 10, 8, 'PACOTE', 'ativo'),
+('075', 'Torrada Integral', 8.90, 4.80, 65, 10, 8, 'PACOTE', 'ativo'),
+('076', 'Queijo Mussarela', 49.90, 34.00, 40, 5, 8, 'KG', 'ativo'),
+('077', 'Presunto Cozido', 39.90, 26.00, 35, 5, 8, 'KG', 'ativo'),
+('078', 'Iogurte Natural 170g', 4.50, 2.30, 120, 15, 8, 'UN', 'ativo'),
+('079', 'Manteiga 200g', 13.90, 8.20, 70, 10, 8, 'UN', 'ativo'),
+('080', 'Requeijao Cremoso', 11.90, 6.90, 80, 10, 8, 'UN', 'ativo'),
+('081', 'Camiseta Basica', 39.90, 20.00, 60, 10, 9, 'UN', 'ativo'),
+('082', 'Calca Jeans', 119.90, 70.00, 35, 5, 9, 'UN', 'ativo'),
+('083', 'Meia Algodao', 12.90, 6.50, 100, 15, 9, 'PAR', 'ativo'),
+('084', 'Bone Ajustavel', 29.90, 15.00, 50, 8, 9, 'UN', 'ativo'),
+('085', 'Chinelo Borracha', 24.90, 12.00, 80, 10, 9, 'PAR', 'ativo'),
+('086', 'Bermuda Moletom', 49.90, 28.00, 45, 8, 9, 'UN', 'ativo'),
+('087', 'Blusa de Frio', 89.90, 50.00, 30, 5, 9, 'UN', 'ativo'),
+('088', 'Vestido Casual', 79.90, 45.00, 35, 5, 9, 'UN', 'ativo'),
+('089', 'Cinto Sintetico', 29.90, 14.00, 60, 10, 9, 'UN', 'ativo'),
+('090', 'Bolsa Feminina', 99.90, 55.00, 25, 5, 9, 'UN', 'ativo'),
+('091', 'Martelo', 29.90, 16.00, 45, 8, 10, 'UN', 'ativo'),
+('092', 'Chave de Fenda', 12.90, 6.50, 100, 15, 10, 'UN', 'ativo'),
+('093', 'Alicate Universal', 24.90, 13.00, 70, 10, 10, 'UN', 'ativo'),
+('094', 'Fita Isolante', 8.50, 4.00, 130, 20, 10, 'UN', 'ativo'),
+('095', 'Trena 5 Metros', 34.90, 20.00, 50, 8, 10, 'UN', 'ativo'),
+('096', 'Prego 18x27', 18.90, 10.00, 80, 10, 10, 'KG', 'ativo'),
+('097', 'Parafuso 5mm', 22.90, 12.50, 75, 10, 10, 'CAIXA', 'ativo'),
+('098', 'Broca para Madeira', 15.90, 8.00, 60, 10, 10, 'UN', 'ativo'),
+('099', 'Serrote Manual', 45.90, 26.00, 30, 5, 10, 'UN', 'ativo'),
+('100', 'Nivel de Bolha', 39.90, 22.00, 35, 5, 10, 'UN', 'ativo'),
+('101', 'Racao para Cachorro 10kg', 109.90, 75.00, 30, 5, 11, 'PACOTE', 'ativo'),
+('102', 'Racao para Gato 1kg', 24.90, 15.00, 60, 10, 11, 'PACOTE', 'ativo'),
+('103', 'Areia Higienica 4kg', 29.90, 18.00, 50, 8, 11, 'PACOTE', 'ativo'),
+('104', 'Shampoo para Cachorro', 19.90, 11.00, 55, 10, 11, 'UN', 'ativo'),
+('105', 'Coleira para Cachorro', 24.90, 13.50, 45, 8, 11, 'UN', 'ativo'),
+('106', 'Brinquedo para Gato', 14.90, 7.50, 70, 10, 11, 'UN', 'ativo'),
+('107', 'Tapete Higienico', 39.90, 23.00, 40, 5, 11, 'PACOTE', 'ativo'),
+('108', 'Comedouro Plastico', 18.90, 9.00, 60, 10, 11, 'UN', 'ativo'),
+('109', 'Bebedouro para Pet', 29.90, 16.00, 45, 8, 11, 'UN', 'ativo'),
+('110', 'Petisco para Cachorro', 12.90, 6.50, 80, 10, 11, 'PACOTE', 'ativo'),
+('111', 'Lampada LED 9W', 9.90, 4.80, 120, 15, 12, 'UN', 'ativo'),
+('112', 'Lampada LED 15W', 14.90, 7.80, 90, 12, 12, 'UN', 'ativo'),
+('113', 'Extensao Eletrica 5m', 29.90, 16.00, 50, 8, 12, 'UN', 'ativo'),
+('114', 'Tomada Dupla', 12.90, 6.00, 100, 15, 12, 'UN', 'ativo'),
+('115', 'Interruptor Simples', 8.90, 4.20, 110, 15, 12, 'UN', 'ativo'),
+('116', 'Pilha AA 4 Unidades', 16.90, 9.00, 80, 10, 12, 'PACOTE', 'ativo'),
+('117', 'Pilha AAA 4 Unidades', 16.90, 9.00, 75, 10, 12, 'PACOTE', 'ativo'),
+('118', 'Lanterna LED', 34.90, 19.00, 45, 8, 12, 'UN', 'ativo'),
+('119', 'Adaptador de Tomada', 11.90, 5.50, 100, 15, 12, 'UN', 'ativo'),
+('120', 'Fusivel 10A', 4.90, 2.00, 150, 20, 12, 'UN', 'ativo'),
+('121', 'Papel A4 500 Folhas', 34.90, 22.00, 70, 10, 13, 'RESMA', 'ativo'),
+('122', 'Envelope Branco', 1.50, 0.50, 300, 40, 13, 'UN', 'ativo'),
+('123', 'Etiqueta Adesiva', 12.90, 6.80, 80, 10, 13, 'PACOTE', 'ativo'),
+('124', 'Fita Adesiva Transparente', 6.90, 3.20, 120, 15, 13, 'UN', 'ativo'),
+('125', 'Cola Branca 90g', 5.50, 2.60, 100, 15, 13, 'UN', 'ativo'),
+('126', 'Tesoura Escolar', 9.90, 4.50, 90, 12, 13, 'UN', 'ativo'),
+('127', 'Calculadora Basica', 29.90, 17.00, 50, 8, 13, 'UN', 'ativo'),
+('128', 'Agenda Anual', 24.90, 13.00, 60, 10, 13, 'UN', 'ativo'),
+('129', 'Cartolina Colorida', 2.90, 1.10, 180, 25, 13, 'UN', 'ativo'),
+('130', 'Papel Contact 2m', 12.90, 7.00, 70, 10, 13, 'ROLO', 'ativo'),
+('131', 'Arroz Integral 1kg', 10.90, 6.50, 80, 10, 1, 'UN', 'ativo'),
+('132', 'Feijao Preto 1kg', 9.50, 6.10, 90, 12, 1, 'UN', 'ativo'),
+('133', 'Molho de Tomate 340g', 4.50, 2.20, 150, 20, 1, 'UN', 'ativo'),
+('134', 'Milho Verde Lata', 5.90, 3.00, 120, 15, 1, 'UN', 'ativo'),
+('135', 'Ervilha Lata', 5.90, 3.00, 110, 15, 1, 'UN', 'ativo'),
+('136', 'Farofa Temperada 250g', 8.90, 4.80, 70, 10, 1, 'UN', 'ativo'),
+('137', 'Tempero Completo 300g', 7.50, 3.90, 80, 10, 1, 'UN', 'ativo'),
+('138', 'Vinagre de Alcool 750ml', 4.99, 2.40, 100, 15, 1, 'UN', 'ativo'),
+('139', 'Azeite de Oliva 500ml', 34.90, 24.00, 50, 8, 1, 'UN', 'ativo'),
+('140', 'Maionese 500g', 12.90, 7.50, 75, 10, 1, 'UN', 'ativo'),
+('141', 'Leite Condensado 395g', 8.50, 5.00, 100, 15, 7, 'UN', 'ativo'),
+('142', 'Creme de Leite 200g', 4.99, 2.50, 120, 15, 7, 'UN', 'ativo'),
+('143', 'Gelatina Morango', 2.99, 1.20, 180, 25, 7, 'UN', 'ativo'),
+('144', 'Biscoito Maisena 350g', 6.50, 3.40, 110, 15, 7, 'UN', 'ativo'),
+('145', 'Coco Ralado 100g', 7.90, 4.20, 70, 10, 7, 'UN', 'ativo'),
+('146', 'Leite em Po 400g', 22.90, 14.00, 65, 10, 1, 'UN', 'ativo'),
+('147', 'Aveia em Flocos 200g', 8.90, 4.70, 80, 10, 1, 'UN', 'ativo'),
+('148', 'Granola 250g', 14.90, 8.00, 60, 10, 1, 'UN', 'ativo'),
+('149', 'Biscoito Integral 300g', 7.90, 4.10, 90, 12, 1, 'UN', 'ativo'),
+('150', 'Cafe Soluvel 100g', 16.90, 10.00, 75, 10, 1, 'UN', 'ativo');
+INSERT INTO categoria (nome, descricao, status)
+VALUES
+('Alimentos', 'Produtos alimenticios em geral', 'ativo'),
+('Bebidas', 'Bebidas alcoolicas e nao alcoolicas', 'ativo'),
+('Limpeza', 'Produtos para limpeza domestica', 'ativo'),
+('Papelaria', 'Materiais escolares e de escritorio', 'ativo'),
+('Eletronicos', 'Acessorios e equipamentos eletronicos', 'ativo'),
+('Higiene', 'Produtos de higiene pessoal', 'ativo'),
+('Doces', 'Balas, chocolates e doces em geral', 'ativo'),
+('Padaria', 'Paes, bolos e produtos de padaria', 'ativo'),
+('Vestuario', 'Roupas, calcados e acessorios', 'ativo'),
+('Ferramentas', 'Ferramentas e materiais para manutencao', 'ativo');
+
+INSERT INTO funcionario (nome, cpf, cargo, salario, telefone, email, status)
+VALUES
+('Joao Pedro Silva', '123.456.789-01', 'Gerente', 3500.00, '38999992001', 'funcionario@email.com', 'ativo'),
+('Maria Oliveira', '123.456.789-02', 'Vendedora', 2200.00, '38999992002', 'funcionario1@email.com', 'ativo'),
+('Carlos Henrique', '123.456.789-03', 'Estoquista', 1900.00, '38999992003', 'funcionario2@email.com', 'ativo'),
+('Fernanda Costa', '123.456.789-04', 'Caixa', 1800.00, '38999992004', 'funcionario3@email.com', 'ativo'),
+('Lucas Almeida', '123.456.789-05', 'Auxiliar Administrativo', 2000.00, '38999992005', 'funcionario4@email.com', 'ativo');
+
+INSERT INTO transportadora (nome, cnpj, telefone, email, status)
+VALUES
+('Transportadora Minas LTDA', '12.345.678/0001-01', '38999993001', 'transportadora@email.com', 'ativo'),
+('Logistica Vale LTDA', '12.345.678/0001-02', '38999993002', 'transportadora1@email.com', 'ativo');
+
+INSERT INTO rota (nome, origem, destino, distancia_km, tempo_estimado, transportadora_id, status)
+VALUES
+('Rota Peçanha - Belo Horizonte', 'Peçanha', 'Belo Horizonte', 285.50, 360, 1, 'ativo'),
+('Rota Peçanha - Governador Valadares', 'Peçanha', 'Governador Valadares', 145.00, 180, 1, 'ativo'),
+('Rota Peçanha - Diamantina', 'Peçanha', 'Diamantina', 210.75, 270, 2, 'ativo');
+
+INSERT INTO venda(cliente_id, funcionario_id, valor_total, desconto, forma_pagamento, status, observacao)
+VALUES
+(1, 1, 250.00, 0.00, 'PIX', 'Concluída', 'Venda realizada no balcão'),
+(2, 2, 480.50, 20.00, 'Cartão de Crédito', 'Concluída', 'Cliente solicitou nota fiscal'),
+(3, 1, 125.90, 0.00, 'Dinheiro', 'Concluída', 'Pagamento à vista'),
+(4, 3, 899.99, 50.00, 'Cartão de Crédito', 'Concluída', 'Compra parcelada em 3x'),
+(5, 2, 340.00, 10.00, 'PIX', 'Concluída', 'Desconto aplicado'),
+(6, 1, 79.90, 0.00, 'Dinheiro', 'Concluída', 'Venda rápida'),
+(7, 3, 620.75, 0.00, 'Cartão de Débito', 'Concluída', 'Pagamento aprovado'),
+(8, 2, 150.00, 15.00, 'PIX', 'Concluída', 'Cliente cadastrado'),
+(9, 1, 230.40, 0.00, 'Cartão de Crédito', 'Concluída', 'Compra parcelada em 2x'),
+(10, 3, 99.99, 0.00, 'Dinheiro', 'Concluída', 'Pagamento em espécie'),
+(11, 2, 450.00, 30.00, 'PIX', 'Concluída', 'Desconto promocional'),
+(12, 1, 780.25, 0.00, 'Cartão de Crédito', 'Concluída', 'Cliente retirou na loja'),
+(13, 3, 199.90, 0.00, 'Cartão de Débito', 'Concluída', 'Venda no caixa'),
+(14, 2, 320.00, 25.00, 'PIX', 'Concluída', 'Cupom de desconto usado'),
+(15, 1, 145.60, 0.00, 'Dinheiro', 'Concluída', 'Pagamento à vista'),
+(16, 3, 999.90, 100.00, 'Cartão de Crédito', 'Concluída', 'Compra parcelada em 5x'),
+(17, 2, 210.00, 0.00, 'PIX', 'Concluída', 'Venda confirmada'),
+(18, 1, 89.50, 0.00, 'Cartão de Débito', 'Concluída', 'Cliente frequente'),
+(19, 3, 560.00, 40.00, 'Cartão de Crédito', 'Concluída', 'Desconto aplicado no caixa'),
+(20, 2, 175.25, 0.00, 'Dinheiro', 'Concluída', 'Venda comum'),
+(21, 1, 430.00, 0.00, 'PIX', 'Concluída', 'Pagamento confirmado'),
+(22, 3, 270.90, 10.00, 'Cartão de Débito', 'Concluída', 'Desconto de cliente fidelidade'),
+(23, 2, 650.00, 50.00, 'Cartão de Crédito', 'Concluída', 'Compra parcelada em 4x'),
+(24, 1, 115.80, 0.00, 'Dinheiro', 'Concluída', 'Pagamento em dinheiro'),
+(25, 3, 390.00, 0.00, 'PIX', 'Concluída', 'Pedido retirado pelo cliente'),
+(26, 2, 240.50, 20.00, 'Cartão de Crédito', 'Concluída', 'Desconto autorizado'),
+(27, 1, 78.90, 0.00, 'Cartão de Débito', 'Concluída', 'Venda no balcão'),
+(28, 3, 810.00, 80.00, 'PIX', 'Concluída', 'Promoção especial'),
+(29, 2, 199.99, 0.00, 'Dinheiro', 'Concluída', 'Venda à vista'),
+(30, 1, 530.00, 30.00, 'Cartão de Crédito', 'Concluída', 'Compra parcelada em 3x'),
+(1, 3, 160.75, 0.00, 'PIX', 'Concluída', 'Cliente retornou para nova compra'),
+(2, 2, 275.00, 15.00, 'Cartão de Débito', 'Concluída', 'Desconto aplicado'),
+(3, 1, 700.00, 0.00, 'Cartão de Crédito', 'Concluída', 'Venda parcelada'),
+(4, 3, 95.90, 0.00, 'Dinheiro', 'Concluída', 'Pagamento em espécie'),
+(5, 2, 350.00, 25.00, 'PIX', 'Concluída', 'Cupom promocional'),
+(6, 1, 440.60, 0.00, 'Cartão de Crédito', 'Concluída', 'Compra aprovada'),
+(7, 3, 120.00, 0.00, 'Cartão de Débito', 'Concluída', 'Venda rápida'),
+(8, 2, 680.00, 60.00, 'PIX', 'Concluída', 'Desconto especial'),
+(9, 1, 220.90, 0.00, 'Dinheiro', 'Concluída', 'Pagamento à vista'),
+(10, 3, 410.00, 10.00, 'Cartão de Crédito', 'Concluída', 'Compra parcelada em 2x'),
+(11, 2, 85.00, 0.00, 'PIX', 'Concluída', 'Venda confirmada'),
+(12, 1, 510.50, 0.00, 'Cartão de Débito', 'Concluída', 'Pagamento aprovado'),
+(13, 3, 300.00, 20.00, 'Cartão de Crédito', 'Concluída', 'Desconto no pedido'),
+(14, 2, 155.75, 0.00, 'Dinheiro', 'Concluída', 'Venda no caixa'),
+(15, 1, 890.00, 90.00, 'PIX', 'Concluída', 'Compra promocional'),
+(16, 3, 265.30, 0.00, 'Cartão de Crédito', 'Concluída', 'Compra parcelada'),
+(17, 2, 140.00, 0.00, 'Cartão de Débito', 'Concluída', 'Cliente fidelizado'),
+(18, 1, 600.00, 50.00, 'PIX', 'Concluída', 'Desconto aplicado'),
+(19, 3, 315.90, 0.00, 'Dinheiro', 'Concluída', 'Pagamento em espécie'),
+(20, 2, 750.00, 75.00, 'Cartão de Crédito', 'Concluída', 'Compra parcelada em 5x');
+
+INSERT INTO item_venda
+(venda_id, produto_id, quantidade, preco_unitario, desconto, valor_total)
+VALUES
+(1, 1, 2, 50.00, 0.00, 100.00),
+(1, 2, 1, 150.00, 0.00, 150.00),
+(2, 3, 3, 80.00, 0.00, 240.00),
+(2, 4, 2, 130.25, 20.00, 240.50),
+(3, 5, 1, 125.90, 0.00, 125.90),
+(3, 6, 2, 60.00, 0.00, 120.00),
+(4, 7, 3, 300.00, 0.00, 900.00),
+(4, 8, 1, 49.99, 0.00, 49.99),
+(5, 9, 2, 175.00, 10.00, 340.00),
+(5, 10, 1, 10.00, 0.00, 10.00),
+(6, 11, 1, 79.90, 0.00, 79.90),
+(6, 12, 2, 25.00, 0.00, 50.00),
+(7, 13, 3, 200.00, 0.00, 600.00),
+(7, 14, 1, 20.75, 0.00, 20.75),
+(8, 15, 2, 82.50, 15.00, 150.00),
+(8, 16, 1, 15.00, 0.00, 15.00),
+(9, 17, 2, 115.20, 0.00, 230.40),
+(9, 18, 1, 20.00, 0.00, 20.00),
+(10, 19, 1, 99.99, 0.00, 99.99),
+(10, 20, 2, 30.00, 0.00, 60.00),
+(11, 21, 3, 160.00, 30.00, 450.00),
+(11, 22, 1, 30.00, 0.00, 30.00),
+(12, 23, 2, 390.13, 0.00, 780.25),
+(12, 24, 1, 40.00, 0.00, 40.00),
+(13, 25, 2, 99.95, 0.00, 199.90),
+(13, 26, 1, 25.00, 0.00, 25.00),
+(14, 27, 3, 115.00, 25.00, 320.00),
+(14, 28, 1, 20.00, 0.00, 20.00),
+(15, 29, 2, 72.80, 0.00, 145.60),
+(15, 30, 1, 30.00, 0.00, 30.00),
+(16, 1, 2, 500.00, 0.00, 1000.00),
+(16, 2, 1, 99.90, 0.00, 99.90),
+(17, 3, 3, 70.00, 0.00, 210.00),
+(17, 4, 1, 30.00, 0.00, 30.00),
+(18, 5, 1, 89.50, 0.00, 89.50),
+(18, 6, 2, 20.00, 0.00, 40.00),
+(19, 7, 2, 300.00, 40.00, 560.00),
+(19, 8, 1, 40.00, 0.00, 40.00),
+(20, 9, 3, 58.42, 0.00, 175.25),
+(20, 10, 1, 25.00, 0.00, 25.00),
+(21, 11, 2, 215.00, 0.00, 430.00),
+(21, 12, 1, 30.00, 0.00, 30.00),
+(22, 13, 3, 93.63, 10.00, 270.89),
+(22, 14, 1, 20.00, 0.00, 20.00),
+(23, 15, 2, 350.00, 50.00, 650.00),
+(23, 16, 1, 50.00, 0.00, 50.00),
+(24, 17, 2, 57.90, 0.00, 115.80),
+(24, 18, 1, 25.00, 0.00, 25.00),
+(25, 19, 3, 130.00, 0.00, 390.00),
+(25, 20, 1, 35.00, 0.00, 35.00),
+(26, 21, 2, 130.25, 20.00, 240.50),
+(26, 22, 1, 40.00, 0.00, 40.00),
+(27, 23, 3, 26.30, 0.00, 78.90),
+(27, 24, 1, 20.00, 0.00, 20.00),
+(28, 25, 2, 445.00, 80.00, 810.00),
+(28, 26, 1, 30.00, 0.00, 30.00),
+(29, 27, 3, 66.66, 0.00, 199.98),
+(29, 28, 1, 20.00, 0.00, 20.00),
+(30, 29, 2, 280.00, 30.00, 530.00),
+(30, 30, 1, 40.00, 0.00, 40.00),
+(31, 1, 2, 80.38, 0.00, 160.76),
+(31, 2, 1, 25.00, 0.00, 25.00),
+(32, 3, 3, 96.67, 15.00, 275.01),
+(32, 4, 1, 20.00, 0.00, 20.00),
+(33, 5, 2, 350.00, 0.00, 700.00),
+(33, 6, 1, 30.00, 0.00, 30.00),
+(34, 7, 1, 95.90, 0.00, 95.90),
+(34, 8, 2, 20.00, 0.00, 40.00),
+(35, 9, 2, 187.50, 25.00, 350.00),
+(35, 10, 1, 25.00, 0.00, 25.00),
+(36, 11, 3, 146.87, 0.00, 440.61),
+(36, 12, 1, 20.00, 0.00, 20.00),
+(37, 13, 2, 60.00, 0.00, 120.00),
+(37, 14, 1, 25.00, 0.00, 25.00),
+(38, 15, 2, 370.00, 60.00, 680.00),
+(38, 16, 1, 40.00, 0.00, 40.00),
+(39, 17, 3, 73.63, 0.00, 220.89),
+(39, 18, 1, 30.00, 0.00, 30.00),
+(40, 19, 2, 210.00, 10.00, 410.00),
+(40, 20, 1, 20.00, 0.00, 20.00),
+(41, 21, 1, 85.00, 0.00, 85.00),
+(41, 22, 2, 15.00, 0.00, 30.00),
+(42, 23, 2, 255.25, 0.00, 510.50),
+(42, 24, 1, 30.00, 0.00, 30.00),
+(43, 25, 3, 106.67, 20.00, 300.01),
+(43, 26, 1, 20.00, 0.00, 20.00),
+(44, 27, 2, 77.88, 0.00, 155.76),
+(44, 28, 1, 20.00, 0.00, 20.00),
+(45, 29, 2, 490.00, 90.00, 890.00),
+(45, 30, 1, 30.00, 0.00, 30.00),
+(46, 1, 3, 88.43, 0.00, 265.29),
+(46, 2, 1, 25.00, 0.00, 25.00),
+(47, 3, 2, 70.00, 0.00, 140.00),
+(47, 4, 1, 20.00, 0.00, 20.00),
+(48, 5, 2, 325.00, 50.00, 600.00),
+(48, 6, 1, 25.00, 0.00, 25.00),
+(49, 7, 3, 105.30, 0.00, 315.90),
+(49, 8, 1, 20.00, 0.00, 20.00),
+(50, 9, 2, 412.50, 75.00, 750.00),
+(50, 10, 1, 30.00, 0.00, 30.00),
+(1, 11, 1, 35.00, 0.00, 35.00),
+(2, 12, 2, 45.00, 0.00, 90.00),
+(3, 13, 1, 50.00, 0.00, 50.00),
+(4, 14, 2, 60.00, 0.00, 120.00),
+(5, 15, 1, 70.00, 0.00, 70.00),
+(6, 16, 3, 30.00, 0.00, 90.00),
+(7, 17, 2, 55.00, 0.00, 110.00),
+(8, 18, 1, 65.00, 0.00, 65.00),
+(9, 19, 2, 75.00, 0.00, 150.00),
+(10, 20, 1, 85.00, 0.00, 85.00),
+(11, 21, 2, 95.00, 0.00, 190.00),
+(12, 22, 1, 105.00, 0.00, 105.00),
+(13, 23, 3, 40.00, 0.00, 120.00),
+(14, 24, 2, 55.00, 0.00, 110.00),
+(15, 25, 1, 65.00, 0.00, 65.00),
+(16, 26, 2, 75.00, 0.00, 150.00),
+(17, 27, 1, 85.00, 0.00, 85.00),
+(18, 28, 3, 35.00, 0.00, 105.00),
+(19, 29, 2, 45.00, 0.00, 90.00),
+(20, 30, 1, 55.00, 0.00, 55.00),
+(21, 1, 2, 60.00, 0.00, 120.00),
+(22, 2, 1, 70.00, 0.00, 70.00),
+(23, 3, 3, 25.00, 0.00, 75.00),
+(24, 4, 2, 35.00, 0.00, 70.00),
+(25, 5, 1, 45.00, 0.00, 45.00),
+(26, 6, 2, 55.00, 0.00, 110.00),
+(27, 7, 1, 65.00, 0.00, 65.00),
+(28, 8, 3, 30.00, 0.00, 90.00),
+(29, 9, 2, 40.00, 0.00, 80.00),
+(30, 10, 1, 50.00, 0.00, 50.00),
+(31, 11, 2, 60.00, 0.00, 120.00),
+(32, 12, 1, 70.00, 0.00, 70.00),
+(33, 13, 3, 25.00, 0.00, 75.00),
+(34, 14, 2, 35.00, 0.00, 70.00),
+(35, 15, 1, 45.00, 0.00, 45.00),
+(36, 16, 2, 55.00, 0.00, 110.00),
+(37, 17, 1, 65.00, 0.00, 65.00),
+(38, 18, 3, 30.00, 0.00, 90.00),
+(39, 19, 2, 40.00, 0.00, 80.00),
+(40, 20, 1, 50.00, 0.00, 50.00),
+(41, 21, 2, 60.00, 0.00, 120.00),
+(42, 22, 1, 70.00, 0.00, 70.00),
+(43, 23, 3, 25.00, 0.00, 75.00),
+(44, 24, 2, 35.00, 0.00, 70.00),
+(45, 25, 1, 45.00, 0.00, 45.00),
+(46, 26, 2, 55.00, 0.00, 110.00),
+(47, 27, 1, 65.00, 0.00, 65.00),
+(48, 28, 3, 30.00, 0.00, 90.00),
+(49, 29, 2, 40.00, 0.00, 80.00),
+(50, 30, 1, 50.00, 0.00, 50.00);
+
+INSERT INTO compra
+(fornecedor_id, funcionario_id, valor_total, status, observacao)
+VALUES
+(1, 1, 1250.00, 'Concluída', 'Compra de reposição de estoque'),
+(2, 2, 890.50, 'Concluída', 'Pedido entregue completo'),
+(3, 1, 2450.00, 'Concluída', 'Compra mensal de produtos'),
+(4, 3, 670.25, 'Concluída', 'Reposição de itens com baixo estoque'),
+(5, 2, 1590.00, 'Concluída', 'Compra para abastecimento do depósito'),
+(6, 1, 430.90, 'Concluída', 'Pedido de produtos diversos'),
+(7, 3, 3200.00, 'Concluída', 'Compra em grande quantidade'),
+(8, 2, 780.00, 'Concluída', 'Reposição de mercadorias'),
+(9, 1, 1125.75, 'Concluída', 'Compra de produtos para revenda'),
+(10, 3, 950.00, 'Concluída', 'Pedido recebido no estoque'),
+(11, 2, 1840.60, 'Concluída', 'Compra para reposição semanal'),
+(12, 1, 560.00, 'Concluída', 'Compra de itens de escritório'),
+(13, 3, 2750.00, 'Concluída', 'Pedido de fornecedores locais'),
+(14, 2, 1320.45, 'Concluída', 'Compra para reposição de produtos'),
+(15, 1, 890.00, 'Concluída', 'Pedido entregue sem pendências'),
+(16, 3, 4100.00, 'Concluída', 'Compra de lote para estoque'),
+(17, 2, 745.30, 'Concluída', 'Reposição de mercadorias vendidas'),
+(18, 1, 990.00, 'Concluída', 'Compra de produtos variados'),
+(19, 3, 2150.75, 'Concluída', 'Compra para abastecimento mensal'),
+(20, 2, 630.00, 'Concluída', 'Pedido de reposição rápida'),
+(21, 1, 1780.00, 'Concluída', 'Compra de produtos para depósito'),
+(22, 3, 540.90, 'Concluída', 'Pedido de itens básicos'),
+(23, 2, 2890.00, 'Concluída', 'Compra de produtos em promoção'),
+(24, 1, 1100.50, 'Concluída', 'Reposição de estoque principal'),
+(25, 3, 760.00, 'Concluída', 'Compra de produtos para loja'),
+(26, 2, 3400.00, 'Concluída', 'Compra de lote especial'),
+(27, 1, 925.40, 'Concluída', 'Pedido para reposição semanal'),
+(28, 3, 1480.00, 'Concluída', 'Compra de mercadorias diversas'),
+(29, 2, 620.75, 'Concluída', 'Compra de itens com alta saída'),
+(30, 1, 1999.90, 'Concluída', 'Compra para renovação do estoque');
+
+
+INSERT INTO item_compra
+(compra_id, produto_id, quantidade, preco_unitario, valor_total)
+VALUES
+(1, 1, 10, 50.00, 500.00),
+(1, 2, 5, 150.00, 750.00),
+(2, 3, 10, 45.00, 450.00),
+(2, 4, 4, 110.13, 440.52),
+(3, 5, 20, 80.00, 1600.00),
+(3, 6, 10, 85.00, 850.00),
+(4, 7, 5, 100.00, 500.00),
+(4, 8, 3, 56.75, 170.25),
+(5, 9, 15, 60.00, 900.00),
+(5, 10, 10, 69.00, 690.00),
+(6, 11, 5, 50.00, 250.00),
+(6, 12, 4, 45.23, 180.92),
+(7, 13, 20, 120.00, 2400.00),
+(7, 14, 10, 80.00, 800.00),
+(8, 15, 10, 50.00, 500.00),
+(8, 16, 7, 40.00, 280.00),
+(9, 17, 15, 50.00, 750.00),
+(9, 18, 5, 75.15, 375.75),
+(10, 19, 10, 60.00, 600.00),
+(10, 20, 5, 70.00, 350.00),
+(11, 21, 20, 70.00, 1400.00),
+(11, 22, 8, 55.08, 440.64),
+(12, 23, 5, 80.00, 400.00),
+(12, 24, 4, 40.00, 160.00),
+(13, 25, 25, 90.00, 2250.00),
+(13, 26, 10, 50.00, 500.00),
+(14, 27, 15, 60.00, 900.00),
+(14, 28, 6, 70.08, 420.48),
+(15, 29, 10, 55.00, 550.00),
+(15, 30, 5, 68.00, 340.00),
+(16, 1, 30, 100.00, 3000.00),
+(16, 2, 10, 110.00, 1100.00),
+(17, 3, 10, 45.00, 450.00),
+(17, 4, 5, 59.06, 295.30),
+(18, 5, 10, 60.00, 600.00),
+(18, 6, 6, 65.00, 390.00),
+(19, 7, 20, 80.00, 1600.00),
+(19, 8, 10, 55.08, 550.80),
+(20, 9, 5, 80.00, 400.00),
+(20, 10, 4, 57.50, 230.00),
+(21, 11, 20, 70.00, 1400.00),
+(21, 12, 10, 38.00, 380.00),
+(22, 13, 5, 80.00, 400.00),
+(22, 14, 2, 70.45, 140.90),
+(23, 15, 30, 80.00, 2400.00),
+(23, 16, 10, 49.00, 490.00),
+(24, 17, 10, 70.00, 700.00),
+(24, 18, 5, 80.10, 400.50),
+(25, 19, 10, 50.00, 500.00),
+(25, 20, 4, 65.00, 260.00),
+(26, 21, 30, 90.00, 2700.00),
+(26, 22, 10, 70.00, 700.00),
+(27, 23, 10, 60.00, 600.00),
+(27, 24, 5, 65.08, 325.40),
+(28, 25, 15, 80.00, 1200.00),
+(28, 26, 7, 40.00, 280.00),
+(29, 27, 5, 80.00, 400.00),
+(29, 28, 3, 73.58, 220.74),
+(30, 29, 20, 70.00, 1400.00),
+(30, 30, 10, 59.99, 599.90),
+(1, 3, 5, 40.00, 200.00),
+(1, 4, 4, 50.00, 200.00),
+(2, 5, 6, 55.00, 330.00),
+(2, 6, 3, 36.00, 108.00),
+(3, 7, 8, 70.00, 560.00),
+(3, 8, 5, 48.00, 240.00),
+(4, 9, 4, 60.00, 240.00),
+(4, 10, 3, 45.00, 135.00),
+(5, 11, 10, 50.00, 500.00),
+(5, 12, 5, 38.00, 190.00),
+(6, 13, 3, 60.00, 180.00),
+(6, 14, 2, 35.00, 70.00),
+(7, 15, 5, 65.00, 325.00),
+(7, 16, 4, 45.00, 180.00),
+(8, 17, 6, 55.00, 330.00),
+(8, 18, 3, 40.00, 120.00),
+(9, 19, 8, 50.00, 400.00),
+(9, 20, 4, 35.00, 140.00),
+(10, 21, 5, 70.00, 350.00),
+(10, 22, 3, 45.00, 135.00),
+(11, 23, 7, 60.00, 420.00),
+(11, 24, 4, 50.00, 200.00),
+(12, 25, 3, 75.00, 225.00),
+(12, 26, 2, 55.00, 110.00),
+(13, 27, 6, 65.00, 390.00),
+(13, 28, 3, 40.00, 120.00),
+(14, 29, 8, 55.00, 440.00),
+(14, 30, 4, 35.00, 140.00),
+(15, 1, 5, 60.00, 300.00),
+(15, 2, 3, 45.00, 135.00),
+(16, 3, 10, 70.00, 700.00),
+(16, 4, 5, 60.00, 300.00),
+(17, 5, 6, 50.00, 300.00),
+(17, 6, 4, 40.00, 160.00),
+(18, 7, 8, 55.00, 440.00),
+(18, 8, 5, 45.00, 225.00),
+(19, 9, 10, 60.00, 600.00),
+(19, 10, 5, 50.00, 250.00),
+(20, 11, 4, 70.00, 280.00),
+(20, 12, 3, 55.00, 165.00),
+(21, 13, 8, 60.00, 480.00),
+(21, 14, 5, 40.00, 200.00),
+(22, 15, 6, 65.00, 390.00),
+(22, 16, 3, 50.00, 150.00),
+(23, 17, 10, 70.00, 700.00),
+(23, 18, 5, 45.00, 225.00),
+(24, 19, 7, 60.00, 420.00),
+(24, 20, 4, 50.00, 200.00),
+(25, 21, 5, 70.00, 350.00),
+(25, 22, 3, 55.00, 165.00),
+(26, 23, 8, 60.00, 480.00),
+(26, 24, 5, 40.00, 200.00),
+(27, 25, 6, 65.00, 390.00),
+(27, 26, 3, 50.00, 150.00),
+(28, 27, 10, 70.00, 700.00),
+(28, 28, 5, 45.00, 225.00),
+(29, 29, 7, 60.00, 420.00),
+(29, 30, 4, 50.00, 200.00),
+(30, 1, 5, 70.00, 350.00),
+(30, 2, 3, 55.00, 165.00);
+
+INSERT INTO producao
+(funcionario_id, status, observacao)
+VALUES
+(1, 'Concluída', 'Produção finalizada e enviada para o estoque'),
+(2, 'Concluída', 'Lote produzido conforme planejamento'),
+(3, 'Em andamento', 'Produção em fase de montagem'),
+(1, 'Concluída', 'Produtos revisados antes do armazenamento'),
+(2, 'Pendente', 'Aguardando matéria-prima para iniciar'),
+(3, 'Concluída', 'Produção concluída sem divergências'),
+(1, 'Em andamento', 'Lote em processo de embalagem'),
+(2, 'Concluída', 'Itens produzidos e registrados no sistema'),
+(3, 'Pendente', 'Aguardando liberação do responsável'),
+(1, 'Concluída', 'Produção realizada no turno da manhã'),
+(2, 'Em andamento', 'Processo de fabricação em execução'),
+(3, 'Concluída', 'Lote finalizado e encaminhado ao estoque'),
+(1, 'Pendente', 'Produção programada para o próximo turno'),
+(2, 'Concluída', 'Produtos conferidos e aprovados'),
+(3, 'Em andamento', 'Produção aguardando etapa de finalização'),
+(1, 'Concluída', 'Lote concluído com sucesso'),
+(2, 'Pendente', 'Aguardando ordem de produção'),
+(3, 'Concluída', 'Produção realizada conforme demanda'),
+(1, 'Em andamento', 'Itens em fase de conferência'),
+(2, 'Concluída', 'Produção finalizada e disponível no estoque');
+
+
+INSERT INTO item_producao
+(producao_id, produto_id, quantidade_planejada, quantidade_produzida, custo_unitario, valor_total)
+VALUES
+(1, 1, 100, 95, 24.50, 2327.50),
+(1, 2, 50, 48, 5.80, 278.40),
+(2, 3, 80, 80, 13.50, 1080.00),
+(2, 4, 60, 58, 11.20, 649.60),
+(3, 5, 200, 180, 3.80, 684.00),
+(3, 6, 120, 115, 6.30, 724.50),
+(4, 7, 150, 150, 1.90, 285.00),
+(4, 8, 90, 87, 4.70, 408.90),
+(5, 9, 300, 280, 3.90, 1092.00),
+(5, 10, 100, 95, 2.40, 228.00),
+(6, 11, 70, 68, 7.20, 489.60),
+(6, 12, 500, 490, 1.20, 588.00),
+(7, 13, 40, 38, 5.60, 212.80),
+(7, 14, 60, 55, 3.20, 176.00),
+(8, 15, 30, 28, 6.50, 182.00),
+(8, 16, 200, 195, 1.80, 351.00);
+
+INSERT INTO pedido
+(cliente_id, funcionario_id, data_entrega_prevista, rota_id, valor_total, status, observacao)
+VALUES
+(1, 1, '2026-07-05', 1, 250.00, 'Concluído', 'Pedido entregue ao cliente'),
+(2, 2, '2026-07-06', 2, 480.50, 'Em transporte', 'Pedido saiu para entrega'),
+(3, 3, '2026-07-07', 3, 125.90, 'Pendente', 'Aguardando confirmação de pagamento'),
+(4, 1, '2026-07-08', 1, 899.99, 'Concluído', 'Entrega realizada sem ocorrências'),
+(5, 2, '2026-07-09', 2, 340.00, 'Em transporte', 'Pedido em rota de entrega'),
+(6, 3, '2026-07-10', 3, 79.90, 'Pendente', 'Aguardando separação dos produtos'),
+(7, 1, '2026-07-11', 1, 620.75, 'Concluído', 'Pedido entregue e confirmado'),
+(8, 2, '2026-07-12', 2, 150.00, 'Em transporte', 'Mercadoria a caminho'),
+(9, 3, '2026-07-13', 3, 230.40, 'Pendente', 'Pedido aguardando aprovação'),
+(10, 1, '2026-07-14', 1, 99.99, 'Concluído', 'Cliente recebeu o pedido'),
+(11, 2, '2026-07-15', 2, 450.00, 'Em transporte', 'Entrega prevista para hoje'),
+(12, 3, '2026-07-16', 3, 780.25, 'Pendente', 'Pedido em análise'),
+(13, 1, '2026-07-17', 1, 199.90, 'Concluído', 'Pedido finalizado com sucesso'),
+(14, 2, '2026-07-18', 2, 320.00, 'Em transporte', 'Pedido encaminhado para rota'),
+(15, 3, '2026-07-19', 3, 145.60, 'Pendente', 'Aguardando disponibilidade no estoque'),
+(16, 1, '2026-07-20', 1, 999.90, 'Concluído', 'Pedido entregue ao destinatário'),
+(17, 2, '2026-07-21', 2, 210.00, 'Em transporte', 'Pedido em deslocamento'),
+(18, 3, '2026-07-22', 3, 89.50, 'Pendente', 'Pedido aguardando confirmação'),
+(19, 1, '2026-07-23', 1, 560.00, 'Concluído', 'Entrega concluída'),
+(20, 2, '2026-07-24', 2, 175.25, 'Em transporte', 'Pedido enviado para entrega'),
+(21, 3, '2026-07-25', 3, 430.00, 'Pendente', 'Pedido aguardando faturamento'),
+(22, 1, '2026-07-26', 1, 270.90, 'Concluído', 'Pedido entregue no endereço informado'),
+(23, 2, '2026-07-27', 2, 650.00, 'Em transporte', 'Entrega em andamento'),
+(24, 3, '2026-07-28', 3, 115.80, 'Pendente', 'Pedido aguardando separação'),
+(25, 1, '2026-07-29', 1, 390.00, 'Concluído', 'Pedido entregue e registrado');
+
+INSERT INTO item_pedido
+(pedido_id, produto_id, quantidade, preco_unitario, desconto, valor_total)
+VALUES
+(1, 1, 2, 50.00, 0.00, 100.00),
+(1, 2, 1, 150.00, 0.00, 150.00),
+(1, 3, 1, 40.00, 0.00, 40.00),
+(1, 4, 1, 60.00, 0.00, 60.00),
+(2, 5, 2, 120.00, 0.00, 240.00),
+(2, 6, 1, 150.50, 0.00, 150.50),
+(2, 7, 1, 100.00, 10.00, 90.00),
+(3, 8, 2, 50.00, 0.00, 100.00),
+(3, 9, 1, 25.90, 0.00, 25.90),
+(4, 10, 3, 300.00, 0.00, 900.00),
+(4, 11, 1, 49.99, 0.00, 49.99),
+(5, 12, 2, 175.00, 10.00, 340.00),
+(6, 13, 1, 79.90, 0.00, 79.90),
+(7, 14, 3, 200.00, 0.00, 600.00),
+(7, 15, 1, 20.75, 0.00, 20.75),
+(8, 16, 2, 82.50, 15.00, 150.00),
+(9, 17, 2, 115.20, 0.00, 230.40),
+(10, 18, 1, 99.99, 0.00, 99.99),
+(11, 19, 3, 160.00, 30.00, 450.00),
+(12, 20, 2, 390.13, 0.00, 780.26),
+(13, 21, 2, 99.95, 0.00, 199.90),
+(14, 22, 3, 115.00, 25.00, 320.00),
+(15, 23, 2, 72.80, 0.00, 145.60),
+(16, 24, 2, 500.00, 0.00, 1000.00),
+(17, 25, 3, 70.00, 0.00, 210.00),
+(18, 26, 1, 89.50, 0.00, 89.50),
+(19, 27, 2, 300.00, 40.00, 560.00),
+(20, 28, 3, 58.42, 0.01, 175.25),
+(21, 29, 2, 215.00, 0.00, 430.00),
+(22, 30, 3, 93.63, 10.00, 270.89),
+(23, 1, 2, 350.00, 50.00, 650.00),
+(24, 2, 2, 57.90, 0.00, 115.80),
+(25, 3, 3, 130.00, 0.00, 390.00),
+(2, 4, 1, 20.00, 0.00, 20.00),
+(3, 5, 1, 30.00, 0.00, 30.00),
+(4, 6, 1, 40.00, 0.00, 40.00),
+(5, 7, 1, 25.00, 0.00, 25.00),
+(6, 8, 2, 35.00, 0.00, 70.00),
+(7, 9, 1, 45.00, 0.00, 45.00),
+(8, 10, 1, 50.00, 0.00, 50.00),
+(9, 11, 2, 60.00, 0.00, 120.00),
+(10, 12, 1, 70.00, 0.00, 70.00),
+(11, 13, 2, 55.00, 0.00, 110.00),
+(12, 14, 1, 65.00, 0.00, 65.00),
+(13, 15, 2, 75.00, 0.00, 150.00),
+(14, 16, 1, 85.00, 0.00, 85.00),
+(15, 17, 2, 95.00, 0.00, 190.00),
+(16, 18, 1, 105.00, 0.00, 105.00),
+(17, 19, 3, 40.00, 0.00, 120.00),
+(18, 20, 2, 55.00, 0.00, 110.00),
+(19, 21, 1, 65.00, 0.00, 65.00),
+(20, 22, 2, 75.00, 0.00, 150.00),
+(21, 23, 1, 85.00, 0.00, 85.00),
+(22, 24, 3, 35.00, 0.00, 105.00),
+(23, 25, 2, 45.00, 0.00, 90.00),
+(24, 26, 1, 55.00, 0.00, 55.00),
+(25, 27, 2, 60.00, 0.00, 120.00),
+(1, 28, 1, 70.00, 0.00, 70.00),
+(2, 29, 3, 25.00, 0.00, 75.00),
+(3, 30, 2, 35.00, 0.00, 70.00),
+(4, 1, 1, 45.00, 0.00, 45.00),
+(5, 2, 2, 55.00, 0.00, 110.00),
+(6, 3, 1, 65.00, 0.00, 65.00),
+(7, 4, 3, 30.00, 0.00, 90.00),
+(8, 5, 2, 40.00, 0.00, 80.00),
+(9, 6, 1, 50.00, 0.00, 50.00),
+(10, 7, 2, 60.00, 0.00, 120.00),
+(11, 8, 1, 70.00, 0.00, 70.00),
+(12, 9, 3, 25.00, 0.00, 75.00),
+(13, 10, 2, 35.00, 0.00, 70.00),
+(14, 11, 1, 45.00, 0.00, 45.00),
+(15, 12, 2, 55.00, 0.00, 110.00),
+(16, 13, 1, 65.00, 0.00, 65.00),
+(17, 14, 3, 30.00, 0.00, 90.00),
+(18, 15, 2, 40.00, 0.00, 80.00),
+(19, 16, 1, 50.00, 0.00, 50.00),
+(20, 17, 2, 60.00, 0.00, 120.00),
+(21, 18, 1, 70.00, 0.00, 70.00),
+(22, 19, 3, 25.00, 0.00, 75.00),
+(23, 20, 2, 35.00, 0.00, 70.00),
+(24, 21, 1, 45.00, 0.00, 45.00),
+(25, 22, 2, 55.00, 0.00, 110.00),
+(1, 23, 1, 65.00, 0.00, 65.00),
+(2, 24, 3, 30.00, 0.00, 90.00),
+(3, 25, 2, 40.00, 0.00, 80.00),
+(4, 26, 1, 50.00, 0.00, 50.00),
+(5, 27, 2, 60.00, 0.00, 120.00),
+(6, 28, 1, 70.00, 0.00, 70.00),
+(7, 29, 3, 25.00, 0.00, 75.00),
+(8, 30, 2, 35.00, 0.00, 70.00),
+(9, 1, 1, 45.00, 0.00, 45.00),
+(10, 2, 2, 55.00, 0.00, 110.00),
+(11, 3, 1, 65.00, 0.00, 65.00),
+(12, 4, 3, 30.00, 0.00, 90.00),
+(13, 5, 2, 40.00, 0.00, 80.00),
+(14, 6, 1, 50.00, 0.00, 50.00),
+(15, 7, 2, 60.00, 0.00, 120.00),
+(16, 8, 1, 70.00, 0.00, 70.00),
+(17, 9, 3, 25.00, 0.00, 75.00),
+(18, 10, 2, 35.00, 0.00, 70.00),
+(19, 11, 1, 45.00, 0.00, 45.00),
+(20, 12, 2, 55.00, 0.00, 110.00),
+(21, 13, 1, 65.00, 0.00, 65.00),
+(22, 14, 3, 30.00, 0.00, 90.00),
+(23, 15, 2, 40.00, 0.00, 80.00),
+(24, 16, 1, 50.00, 0.00, 50.00),
+(25, 17, 2, 60.00, 0.00, 120.00),
+(1, 18, 1, 70.00, 0.00, 70.00),
+(2, 19, 3, 25.00, 0.00, 75.00),
+(3, 20, 2, 35.00, 0.00, 70.00),
+(4, 21, 1, 45.00, 0.00, 45.00),
+(5, 22, 2, 55.00, 0.00, 110.00),
+(6, 23, 1, 65.00, 0.00, 65.00),
+(7, 24, 3, 30.00, 0.00, 90.00),
+(8, 25, 2, 40.00, 0.00, 80.00),
+(9, 26, 1, 50.00, 0.00, 50.00),
+(10, 27, 2, 60.00, 0.00, 120.00),
+(11, 28, 1, 70.00, 0.00, 70.00),
+(12, 29, 3, 25.00, 0.00, 75.00),
+(13, 30, 2, 35.00, 0.00, 70.00),
+(14, 1, 1, 45.00, 0.00, 45.00),
+(15, 2, 2, 55.00, 0.00, 110.00),
+(16, 3, 1, 65.00, 0.00, 65.00),
+(17, 4, 3, 30.00, 0.00, 90.00),
+(18, 5, 2, 40.00, 0.00, 80.00),
+(19, 6, 1, 50.00, 0.00, 50.00),
+(20, 7, 2, 60.00, 0.00, 120.00);
+
+alter table cliente # comando para alterar a tabela 
+add column email_secundario varchar(50); # adicionar tabela 
+
+alter table produto # comando para alterar a tabela 
+modify column preco_venda decimal(12,2); # alterar uma coluna especifica
+
+alter table compra # comando para alterar a tabela 
+drop column observacao; # remover uma coluna em especifico
+
+alter table produto # comando para alterar a tabela 
+add column data_atualizacao datetime; # adicionar tabela 
+
+select * from cliente  where status = 'ativo';
+
+select * from produto
+where estoque_atual < estoque_minimo;
+
+select * from venda
+where data_venda = '2026-07-04 18:36:29';
+
+select * from fornecedor
+where cidade = 'sao paulo';
+
+select * from  funcionario
+where salario > 3000;
+
+select * from produto
+where data_cadastro > '2026-07-03';
+
+select v.venda_id,v.data_venda,v.cliente_id,v.funcionario_id,v.valor_total,v.desconto,v.forma_pagamento,v.status,v.observacao,
+c.nome as nome_cliente,
+f.nome as nome_funcionario
+from venda v
+inner join cliente c on v.cliente_id = c.cliente_id
+inner join funcionario f on v.funcionario_id = f.funcionario_id;
+
+select produto.descricao,item_venda.quantidade,item_venda.valor_total as resumo
+from produto
+inner join item_venda
+on produto.produto_id = item_venda.produto_id;
+
+select compra.data_compra,compra.fornecedor_id,compra.funcionario_id,compra.status,compra.valor_total , fornecedor.nome,funcionario.nome as resumo 
+from compra
+inner join fornecedor
+on compra.fornecedor_id = fornecedor.fornecedor_id
+inner join funcionario
+on compra.funcionario_id = funcionario.funcionario_id;
+
+select pedido.data_pedido,cliente.nome,rota.nome,transportadora.nome as resumo 
+from pedido
+inner join cliente
+on pedido.cliente_id = cliente.cliente_id
+inner join rota
+on pedido.rota_id = rota.rota_id
+inner join transportadora
+on rota.transportadora_id = transportadora.transportadora_id;
+
+
+select produto.descricao,item_pedido.quantidade,item_pedido.valor_total as resumo
+from produto
+inner join item_pedido
+on produto.produto_id = item_pedido.produto_id;
+
+
+ALTER TABLE producao
+ADD quantidade_produzida INT NOT NULL;
+
+SELECT funcionario.nome ,producao.quantidade_produzida
+FROM producao
+INNER JOIN funcionario
+ON producao.funcionario_id = funcionario.funcionario_id;
+
+
+select cliente.nome,sum(venda.valor_total) as resumo 
+from cliente
+inner join venda 
+on cliente.cliente_id =  venda.cliente_id
+group by cliente.nome;
+
+
+
+
+select funcionario.cargo,avg(funcionario.salario) as resumo 
+from funcionario
+group by funcionario.cargo;
+
+
+select 	sum(item_venda.quantidade) , produto.codigo,produto.descricao as resumo 
+from item_venda
+inner join produto
+on item_venda.produto_id = produto.produto_id
+group by produto.descricao;
+
+select fornecedor.nome,sum(compra.valor_total) as resumo 
+from fornecedor
+inner join compra
+on fornecedor.fornecedor_id = compra.fornecedor_id
+group by fornecedor.nome;
+
+select cliente.nome, count(pedido.pedido_id) as maisde3
+from cliente
+inner join pedido
+on cliente.cliente_id = pedido.cliente_id
+group by cliente.cliente_id, cliente.nome
+HAVING COUNT(pedido.pedido_id) > 3;
+
+select produto.descricao,sum(item_venda.quantidade) as total_vendido_mais_de_100
+from produto
+inner join item_venda
+on produto.produto_id = item_venda.produto_id
+group by produto.descricao
+having sum(item_venda.quantidade) > 100;
+
+select year(venda.data_venda), month(venda.data_venda),sum(venda.valor_total) as total
+from venda
+group by year(venda.data_venda),
+month(venda.data_venda);
+
+select  funcionario.nome,count(producao.producao_id) as totalproduzido
+from funcionario
+inner join producao
+on funcionario.funcionario_id = producao.funcionario_id
+group by funcionario.nome;
+
+select transportadora.nome, count(rota.rota_id) as resumo
+from transportadora
+inner join rota
+on transportadora.transportadora_id = rota.transportadora_id
+where rota.status = 'ativo'
+group by transportadora.nome; 
+
+select cliente.nome, venda.valor_total as venda_acima_media
+from cliente
+inner join venda
+on cliente.cliente_id = venda.cliente_id
+where venda.valor_total > (select avg(valor_total) from venda); 
+
+select descricao, preco_venda from produto
+where preco_venda > (
+select avg(preco_venda) from produto
+);
+
+select fornecedor.nome, count(compra.compra_id) as uma1compra
+from fornecedor
+inner join compra
+on fornecedor.fornecedor_id = compra.fornecedor_id
+group by fornecedor.nome
+having count(compra.compra_id) >= 1;
+
+select cliente.nome,count(pedido.pedido_id) as clientenenhumpedido
+from cliente
+left join pedido
+on cliente.cliente_id = pedido.cliente_id
+group by cliente.nome
+having count(pedido.pedido_id)  = 0;
+
+select produto.descricao, item_venda.item_venda_id as produto_nuna_vendido
+from produto
+left join item_venda
+on produto.produto_id = item_venda.produto_id
+where item_venda.item_venda_id is null;
+
+select funcionario.nome from funcionario
+inner join pedido
+on funcionario.funcionario_id = pedido.funcionario_id
+left join venda
+on pedido.funcionario_id = venda.funcionario_id
+where venda.venda_id is null;
+
+select observacao,valor_total from pedido
+where  pedido.valor_total > (select  avg(pedido.valor_total) from pedido); 
+
+select cliente.nome,cliente.limite_credito from cliente
+where cliente.limite_credito > all (
+select pedido.valor_total from pedido
+);
+
+select produto.descricao, item_producao.custo_unitario
+from produto
+inner join item_producao
+on produto.produto_id = item_producao.produto_id
+where item_producao.custo_unitario > (
+select avg(custo_unitario)
+from item_producao
+);
+
+select cliente.nome, count(distinct pedido.rota_id) as pedido_mais_1_rota
+from cliente
+inner join pedido
+on cliente.cliente_id = pedido.cliente_id
+group by cliente.cliente_id, cliente.nome
+having count(distinct pedido.rota_id) > 1;
+
+SET SQL_SAFE_UPDATES = 0;
+
+update cliente
+set limite_credito = limite_credito * 1.10
+where status = 'ativo';
+
+update produto
+set status = 'inativo'
+where produto_id > 0 and estoque_atual = 0;
+
+
+update funcionario
+set salario = salario * 1.05
+where cargo = 'Vendedora';
+
+update rota
+set tempo_estimado = tempo_estimado * 1.10
+where rota_id > 0 and distancia_km > 300;
+
+delete from cliente
+where cliente_id > 0
+and status = 'inativo'
+and data_cadastro < DATE_SUB(CURDATE(), interval 2 YEAR);
+
+delete from produto
+where produto_id not in (
+    select produto_id from item_venda
+)
+and produto_id not in (
+    select produto_id from item_compra
+);
+
+delete from pedido
+where status = 'cancelado';
+
+delete from producao
+where status = 'cancelado'
+and not exists (
+    select 1
+    from item_producao ip
+    where ip.producao_id = producao.producao_id
+);
+
+DELETE FROM transportadora
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM rota
+    WHERE rota.transportadora_id = transportadora.transportadora_id
+);
+
+
+# 41 select
+SELECT c.nome AS cliente,p.descricao AS produto,f.nome AS funcionario,
+    SUM(iv.quantidade * iv.preco_unitario) AS total_vendido
+FROM venda v
+INNER JOIN cliente c 
+    ON v.cliente_id = c.cliente_id
+INNER JOIN funcionario f 
+    ON v.funcionario_id = f.funcionario_id
+INNER JOIN item_venda iv 
+    ON v.venda_id = iv.venda_id
+INNER JOIN produto p 
+    ON iv.produto_id = p.produto_id
+GROUP BY 
+    c.nome,
+    p.descricao,
+    f.nome;
+    
+    
+    
+    
+    
+    
+        SELECT c.nome AS categoria,p.descricao AS produto,p.preco_venda AS maior_valor_venda
+FROM produto p
+INNER JOIN categoria c
+    ON p.categoria_id = c.categoria_id
+WHERE p.preco_venda = (
+    SELECT MAX(p2.preco_venda)
+    FROM produto p2
+    WHERE p2.categoria_id = p.categoria_id
+)
+ORDER BY c.nome;
+
+
+
+SELECT 
+    f.funcionario_id,
+    f.nome
+FROM funcionario f
+WHERE EXISTS (
+    SELECT 1
+    FROM venda v
+    WHERE v.funcionario_id = f.funcionario_id
+)
+AND EXISTS (
+    SELECT 1
+    FROM compra c
+    WHERE c.funcionario_id = f.funcionario_id
+)
+AND EXISTS (
+    SELECT 1
+    FROM producao p
+    WHERE p.funcionario_id = f.funcionario_id
+);
+
+
+SELECT 
+    t.transportadora_id,
+    t.nome AS transportadora,
+    COUNT(p.pedido_id) AS total_pedidos_entregues
+FROM transportadora t
+INNER JOIN rota r
+    ON t.transportadora_id = r.transportadora_id
+INNER JOIN pedido p
+    ON r.rota_id = p.rota_id
+WHERE p.status = 'Concluído'
+GROUP BY 
+    t.transportadora_id,
+    t.nome
+ORDER BY total_pedidos_entregues DESC;
+
+SELECT c.estado,c.cidade,SUM(v.valor_total) AS total_vendas
+FROM venda v
+INNER JOIN cliente c
+    ON v.cliente_id = c.cliente_id
+GROUP BY 
+    c.estado,
+    c.cidade
+ORDER BY 
+    c.estado,
+    c.cidade;
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+SELECT DISTINCT c.cliente_id,c.nome AS cliente
+FROM cliente c
+INNER JOIN venda v
+    ON c.cliente_id = v.cliente_id
+INNER JOIN item_venda iv
+    ON v.venda_id = iv.venda_id
+INNER JOIN produto p
+    ON iv.produto_id = p.produto_id
+WHERE p.preco_custo > (
+    SELECT AVG(preco_custo)
+    FROM produto); 
+
+
+
+
+
+SELECT t.nome AS transportadora,pr.descricao AS produto,SUM(ip.quantidade) AS quantidade_vendida
+FROM transportadora t
+INNER JOIN rota r
+    ON t.transportadora_id = r.transportadora_id
+INNER JOIN pedido pe
+    ON r.rota_id = pe.rota_id
+INNER JOIN item_pedido ip
+    ON pe.pedido_id = ip.pedido_id
+INNER JOIN produto pr
+    ON ip.produto_id = pr.produto_id
+GROUP BY t.transportadora_id,t.nome,pr.produto_id,pr.descricao
+ORDER BY t.nome,quantidade_vendida DESC;
+
+SELECT pe.pedido_id,pe.data_pedido,c.nome AS cliente,SUM(ip.valor_total) AS total_dos_itens
+FROM pedido pe
+INNER JOIN cliente c
+    ON pe.cliente_id = c.cliente_id
+INNER JOIN item_pedido ip
+    ON pe.pedido_id = ip.pedido_id
+GROUP BY pe.pedido_id,pe.data_pedido,c.nome
+HAVING SUM(ip.valor_total) > (
+    SELECT AVG(valor_total)
+    FROM pedido
+);
+
+SELECT f.funcionario_id,f.nome AS funcionario,p.producao_id,p.data_inicio,SUM(ip.valor_total) AS custo_total_producao
+FROM producao p
+INNER JOIN funcionario f
+    ON p.funcionario_id = f.funcionario_id
+INNER JOIN item_producao ip
+    ON p.producao_id = ip.producao_id
+GROUP BY f.funcionario_id,f.nome,p.producao_id,p.data_inicio
+HAVING SUM(ip.valor_total) > 10000
+ORDER BY f.nome,custo_total_producao DESC;
+
+
+
+
+
+
+
+SELECT 
+    c.cliente_id,
+    c.nome AS cliente,
+    pe.pedido_id,
+    pe.valor_total,
+    COUNT(DISTINCT ip.produto_id) AS produtos_diferentes
+FROM cliente c
+INNER JOIN pedido pe
+    ON c.cliente_id = pe.cliente_id
+INNER JOIN item_pedido ip
+    ON pe.pedido_id = ip.pedido_id
+CROSS JOIN (
+    SELECT AVG(valor_total) AS media_pedidos
+    FROM pedido
+) AS media
+GROUP BY 
+    c.cliente_id,
+    c.nome,
+    pe.pedido_id,
+    pe.valor_total,
+    media.media_pedidos
+HAVING 
+    COUNT(DISTINCT ip.produto_id) > 3
+    AND pe.valor_total > media.media_pedidos;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
