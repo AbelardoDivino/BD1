@@ -9,7 +9,7 @@ cliente_id INT PRIMARY KEY AUTO_INCREMENT,
 nome VARCHAR(50) NOT NULL,
 cpf_cnpj VARCHAR(20) NOT NULL,
 telefone VARCHAR(15) NOT NULL,
-email VARCHAR(50) NOT NULL,
+email VARCHAR(100) NOT NULL,
 endereco VARCHAR(100) NOT NULL,
 cidade VARCHAR(50) NOT NULL,
 estado VARCHAR(30) NOT NULL,
@@ -323,6 +323,22 @@ VALUES
 ('Comercial Vale Verde LTDA', '12.345.678/0001-29', '38999991029', 'contato@valeverde.com', 'Rua Verde, 290', 'Serro', 'MG', 'ativo'),
 ('Fornecedora Minas LTDA', '12.345.678/0001-30', '38999991030', 'vendas@fornecedoraminas.com', 'Rua das Minas, 300', 'Peçanha', 'MG', 'ativo');
 
+INSERT INTO categoria (nome, descricao, status)
+VALUES
+('Alimentos', 'Produtos alimenticios em geral', 'ativo'),
+('Bebidas', 'Bebidas alcoolicas e nao alcoolicas', 'ativo'),
+('Limpeza', 'Produtos para limpeza domestica', 'ativo'),
+('Papelaria', 'Materiais escolares e de escritorio', 'ativo'),
+('Eletronicos', 'Acessorios e equipamentos eletronicos', 'ativo'),
+('Higiene', 'Produtos de higiene pessoal', 'ativo'),
+('Doces', 'Balas, chocolates e doces em geral', 'ativo'),
+('Padaria', 'Paes, bolos e produtos de padaria', 'ativo'),
+('Vestuario', 'Roupas, calcados e acessorios', 'ativo'),
+('Ferramentas', 'Ferramentas e materiais para manutencao', 'ativo'),
+('Pet Shop', 'Produtos para animais de estimacao', 'ativo'),
+('Iluminacao', 'Lampadas e materiais eletricos', 'ativo'),
+('Escritorio', 'Materiais de escritorio e papelaria', 'ativo');
+
 INSERT INTO produto
 (codigo, descricao, preco_venda, preco_custo, estoque_atual, estoque_minimo, categoria_id, unidade_medida, status)
 VALUES
@@ -476,18 +492,6 @@ VALUES
 ('148', 'Granola 250g', 14.90, 8.00, 60, 10, 1, 'UN', 'ativo'),
 ('149', 'Biscoito Integral 300g', 7.90, 4.10, 90, 12, 1, 'UN', 'ativo'),
 ('150', 'Cafe Soluvel 100g', 16.90, 10.00, 75, 10, 1, 'UN', 'ativo');
-INSERT INTO categoria (nome, descricao, status)
-VALUES
-('Alimentos', 'Produtos alimenticios em geral', 'ativo'),
-('Bebidas', 'Bebidas alcoolicas e nao alcoolicas', 'ativo'),
-('Limpeza', 'Produtos para limpeza domestica', 'ativo'),
-('Papelaria', 'Materiais escolares e de escritorio', 'ativo'),
-('Eletronicos', 'Acessorios e equipamentos eletronicos', 'ativo'),
-('Higiene', 'Produtos de higiene pessoal', 'ativo'),
-('Doces', 'Balas, chocolates e doces em geral', 'ativo'),
-('Padaria', 'Paes, bolos e produtos de padaria', 'ativo'),
-('Vestuario', 'Roupas, calcados e acessorios', 'ativo'),
-('Ferramentas', 'Ferramentas e materiais para manutencao', 'ativo');
 
 INSERT INTO funcionario (nome, cpf, cargo, salario, telefone, email, status)
 VALUES
@@ -1144,7 +1148,7 @@ on produto.produto_id = item_pedido.produto_id;
 
 
 ALTER TABLE producao
-ADD quantidade_produzida INT NOT NULL;
+ADD quantidade_produzida INT DEFAULT 0 NOT NULL;
 
 SELECT funcionario.nome ,producao.quantidade_produzida
 FROM producao
